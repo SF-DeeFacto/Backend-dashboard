@@ -1,0 +1,6 @@
+spring:
+    application:
+        name: backend-dashboard
+
+server:
+    port: 8081
