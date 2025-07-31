@@ -2,5 +2,10 @@ spring:
     application:
         name: backend-dashboard
 
+opensearch:
+    host: https://localhost:9200
+    username: admin
+    password: StrongPassword22!
+
 server:
     port: 8081
