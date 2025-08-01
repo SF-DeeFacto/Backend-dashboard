@@ -4,7 +4,6 @@ import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.SensorDataDto
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -29,26 +28,9 @@ public class MainPageService {
     private final RestHighLevelClient client;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String INDEX = "sensor_data_stream";
+//    private static final String INDEX = "sensor_data_stream";
+    private static final String INDEX = "iot-sensor-data";
 
-    // Mono로 변경
-    public Mono<SensorDataDto> getLatestSensorDataMono() {
-        return Mono.fromCallable(() -> {
-            SearchRequest request = new SearchRequest(INDEX);
-            SearchSourceBuilder builder = new SearchSourceBuilder()
-                    .size(1)
-                    .sort("timestamp", SortOrder.DESC);
-            request.source(builder);
-
-            SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-            if (response.getHits().getHits().length == 0) {
-                return null;
-            }
-
-            SearchHit hit = response.getHits().getAt(0);
-            return objectMapper.readValue(hit.getSourceAsString(), SensorDataDto.class);
-        }).subscribeOn(Schedulers.boundedElastic());
-    }
 
     public Flux<SensorDataDto> getRecentSensorData(LocalDateTime fromTime) {
         SearchRequest request = new SearchRequest(INDEX);

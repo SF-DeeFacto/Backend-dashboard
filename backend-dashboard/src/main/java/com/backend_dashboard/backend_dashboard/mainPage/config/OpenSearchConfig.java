@@ -20,16 +20,18 @@ public class OpenSearchConfig {
     @Value("${opensearch.host}")
     private String host;
 
-    @Value("${opensearch.username}")
-    private String username;
+//    @Value("${opensearch.username}")
+//    private String username;
 
-    @Value("${opensearch.password}")
-    private String password;
+//    @Value("${opensearch.password}")
+//    private String password;
 
     @Bean
     public RestHighLevelClient restHighLevelClient() throws Exception {
+
+
         final var provider = new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+//        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
 
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(null, (chain, authType) -> true)
@@ -39,7 +41,7 @@ public class OpenSearchConfig {
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                         .setSSLContext(sslContext)
                         .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                        .setDefaultCredentialsProvider(provider)
+//                        .setDefaultCredentialsProvider(provider)
                 );
 
         return new RestHighLevelClient(builder);
