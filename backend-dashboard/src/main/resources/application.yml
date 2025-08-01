@@ -2,5 +2,10 @@ spring:
     application:
         name: backend-dashboard
 
+opensearch:
+    host: https://b7c449ee92a1.ngrok-free.app
+#    username: admin
+#    password: StrongPassword22!
+# https://fa5635b74d8e.ngrok-free.app/_dashboards/ (대시보드)
 server:
     port: 8081
