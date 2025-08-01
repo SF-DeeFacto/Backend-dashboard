@@ -19,7 +19,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MainPageController {
 
-    private final MainPageService sensorDataService;
+    private final MainPageService mainPageService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping(value = "/sensor-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -29,7 +29,7 @@ public class MainPageController {
         return Flux.interval(Duration.ofSeconds(2))
                 .flatMap(tick -> {
                     LocalDateTime currentFetchTime = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(1);
-                    return sensorDataService.getLatestSensorData(lastFetchTime[0])
+                    return mainPageService.getLatestSensorData(lastFetchTime[0])
                             .collectList()
                             .flatMapMany(list -> {
                                 if (!list.isEmpty()) {
@@ -49,5 +49,4 @@ public class MainPageController {
                 .filter(msg -> !msg.trim().isEmpty())
                 .onErrorResume(e -> Flux.empty());
     }
-
 }
