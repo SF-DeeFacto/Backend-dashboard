@@ -20,18 +20,21 @@ public class OpenSearchConfig {
     @Value("${opensearch.host}")
     private String host;
 
-//    @Value("${opensearch.username}")
-//    private String username;
+    // 🔥 AWS 사용 시 주석 처리 필요
+    @Value("${opensearch.username}")
+    private String username;
 
-//    @Value("${opensearch.password}")
-//    private String password;
+    // 🔥 AWS 사용 시 주석 처리 필요
+    @Value("${opensearch.password}")
+    private String password;
 
     @Bean
     public RestHighLevelClient restHighLevelClient() throws Exception {
 
 
         final var provider = new BasicCredentialsProvider();
-//        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+        // 🔥 AWS 사용 시 주석 처리 필요
+        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
 
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(null, (chain, authType) -> true)
@@ -41,7 +44,8 @@ public class OpenSearchConfig {
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                         .setSSLContext(sslContext)
                         .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-//                        .setDefaultCredentialsProvider(provider)
+                        // 🔥 AWS 사용 시 주석 처리 필요
+                        .setDefaultCredentialsProvider(provider)
                 );
 
         return new RestHighLevelClient(builder);
