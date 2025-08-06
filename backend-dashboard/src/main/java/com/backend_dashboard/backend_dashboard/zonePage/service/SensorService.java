@@ -1,66 +1,121 @@
 package com.backend_dashboard.backend_dashboard.zonePage.service;
 
+import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.GenericSensorDataDto;
+import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ParticleSensorDataDto;
+import com.backend_dashboard.backend_dashboard.mainPage.domain.entity.SensorThreshold;
+import com.backend_dashboard.backend_dashboard.mainPage.repository.SensorThresholdRepository;
+import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorDataDto;
+import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorWithStatusDto;
+import com.backend_dashboard.backend_dashboard.zonePage.dto.SensorWithStatusDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SensorService {
-    // 센서 데이터를 상태로 변환하는 함수
-    public String getStatusBySensorData(String sensorType, Map<String, Double> val) {
-        boolean isGreen = false;
-        boolean isYellow = false;
-        boolean isRed = false;
+    private final SensorThresholdRepository thresholdRepository;
 
-        switch (sensorType) {
-            // 온도
-            case ("temperature"):
-                double temp = val.get("value");
-                isGreen = ( 20.0 <= temp && temp <= 22.0 );
-                isYellow = (( 19.0 <= temp && temp < 20.0 ) || ( 22.0 < temp && temp <= 24.0 ));
-                isRed = !isGreen && !isYellow;
-                break;
+    // 가져온 임계치로 상태 반환하기
+    public List<GroupSensorWithStatusDto> addStatusToGroupedSensors(List<GroupSensorDataDto> groupedSensors, Map<String, SensorThreshold> thresholdMap) {
 
-            // 습도
-            case ("humidity"):
-                double humi = val.get("value");
-                isGreen = ( 40.0 <= humi && humi <= 50.0);
-                isYellow = (( 32.0 <= humi && humi < 40.0 ) || ( 50.0 < humi && humi <= 52.0 ));
-                isRed = !isGreen && !isYellow;
-                break;
+        return groupedSensors.stream()
+                .map(group -> {
+                    List<SensorWithStatusDto> sensorsWithStatus = group.getSeonsors().stream()
+                            .map(sensor -> {
 
-            // 풍향
-            case ("windDir"):
-                double wind = val.get("value");
-                isGreen = ( -14 <= wind && wind <= 14 );
-                isYellow = (( -20 <= wind && wind < -14 ) || ( 14 < wind && wind <= 20 ));
-                isRed = !isGreen && !isYellow;
-                break;
+                                Map<String, Double> sensorValuesMap = new HashMap<>();
 
-            // 정전기
-            case ("esd"):
-                double esd = val.get("value");
-                isGreen = ( 30 <= esd && esd <80 );
-                isYellow = ( 80 <= esd && esd < 100 );
-                isRed = ( 100 <= esd );
-                break;
+                                if (sensor instanceof ParticleSensorDataDto) {
+                                    ParticleSensorDataDto particleSensor = (ParticleSensorDataDto) sensor;
+                                    sensorValuesMap.put("0.1", particleSensor.getVal_0_1());
+                                    sensorValuesMap.put("0.3", particleSensor.getVal_0_3());
+                                    sensorValuesMap.put("0.5", particleSensor.getVal_0_5());
+                                } else if (sensor instanceof GenericSensorDataDto) {
+                                    GenericSensorDataDto genericSensor = (GenericSensorDataDto) sensor;
+                                    sensorValuesMap.put("value", genericSensor.getVal());
+                                } else {
+                                    // 알 수 없는 타입의 경우 빈 맵 반환
+                                    sensorValuesMap = Collections.emptyMap();
+                                }
 
-            // 파티클
-            case ("particle"):
-                // 입자 크기별로 다른 임계치 적용, 모든 수치가 각 임계치 범위 내여야 함
-                double p01 = val.get("0.1");
-                double p03 = val.get("0.3");
-                double p05 = val.get("0.5");
-                isGreen = ( 850 <= p01 && p01 < 1000) && ( 82 <= p03 && p03 < 102) && ( 20 <= p05 && p05 < 35);
-                isYellow = ( 1000 <= p01 && p01 < 1045) && ( 102 <= p03 && p03 < 108) && ( 35 <= p05 && p05 < 39);
-                isRed = ( 1045 <= p01 ) && ( 108 <= p03 ) && ( 39 <= p05 );
-                break;
+                                String status = evaluateStatus(sensor.getSensorType(), sensorValuesMap, thresholdMap);
+
+                                return new SensorWithStatusDto(
+                                        sensor.getSensorId(),
+                                        sensor.getSensorType(),
+                                        status,
+                                        sensor.getTimestamp(),
+                                        sensorValuesMap
+                                );
+                            }).collect(Collectors.toList());
+
+                    return new GroupSensorWithStatusDto(group.getTimestamp(), sensorsWithStatus);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String evaluateStatus(String type, Map<String, Double> values, Map<String, SensorThreshold> thresholdMap) {
+        boolean hasRed = false;
+        boolean hasYellow = false;
+
+        if ("particle".equals(type)) {
+            // particle의 val은 {"0.1": 950, "0.3": 100, "0.5": 30} 같은 구조
+            if (checkAlertThreshold("particle_0_1", values.get("0.1"), thresholdMap)) {
+                hasRed = true;
+            } else if (checkAlertThreshold("particle_0_3", values.get("0.3"), thresholdMap)) {
+                hasRed = true;
+            } else if (checkAlertThreshold("particle_0_5", values.get("0.5"), thresholdMap)) {
+                hasRed = true;
+            } else if (checkWarningThreshold("particle_0_1", values.get("0.1"), thresholdMap)) {
+                hasYellow = true;
+            } else if (checkWarningThreshold("particle_0_3", values.get("0.3"), thresholdMap)) {
+                hasYellow = true;
+            } else if (checkWarningThreshold("particle_0_5", values.get("0.5"), thresholdMap)) {
+                hasYellow = true;
+            }
+
+        } else {
+            // generic 센서는 {"value": 21.0} 같은 구조
+            Double val = values.get("value");
+
+            if (checkAlertThreshold(type, val, thresholdMap)) {
+                hasRed = true;
+            } else if (checkWarningThreshold(type, val, thresholdMap)) {
+                hasYellow = true;
+            }
         }
 
-        if (isGreen) return "green";
-        if (isYellow) return "yellow";
-        if(isRed) return "red";
-        return "unknown";
+        if (hasRed) return "RED";
+        if (hasYellow) return "YELLOW";
+        return "GREEN";
     }
+
+    // alert level 가져오기
+    private boolean checkAlertThreshold(String type, Double val, Map<String, SensorThreshold> thresholdMap) {
+        SensorThreshold threshold = thresholdMap.get(type);
+        if (threshold == null) {
+            System.out.println("임계치가 없습니다!!!!!!!!!!!!!!!!!!!!!!!!!");
+            return false;
+        }
+
+        return (threshold.getAlertLow() != null && val < threshold.getAlertLow())
+                || (threshold.getAlertHigh() != null && val > threshold.getAlertHigh());
+    }
+
+    // warning level 가져오기
+    private boolean checkWarningThreshold(String type, Double val, Map<String, SensorThreshold> thresholdMap) {
+        SensorThreshold threshold = thresholdMap.get(type);
+        if (threshold == null) return false;
+
+        return (threshold.getWarningLow() != null && val < threshold.getWarningLow())
+                || (threshold.getWarningHigh() != null && val > threshold.getWarningHigh());
+    }
+
 
 }
