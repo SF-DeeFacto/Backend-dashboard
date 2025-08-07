@@ -38,6 +38,6 @@ opensearch:
 # AWS opensearch 대시보드 url
 # https://fa5635b74d8e.ngrok-free.app/_dashboards/ (대시보드)
 server:
-    port: 8081
+    port: 8083
 
 

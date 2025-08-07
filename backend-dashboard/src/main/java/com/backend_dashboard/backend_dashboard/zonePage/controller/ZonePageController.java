@@ -25,7 +25,7 @@ public class ZonePageController {
     private final ZonePageService zonePageService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @GetMapping(value = "/home", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/home/zone", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<List<GroupSensorWithStatusDto>> getZoneSensorData(
             @RequestParam String zoneId
     ) {
