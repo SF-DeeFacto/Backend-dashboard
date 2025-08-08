@@ -53,6 +53,7 @@ public class ZoneStatusService {
                             latestPerSensor.put(sensorId, dto);
                         }
                     }
+                    // 🖥️ Iterable 객체로부터 Flux 생성 (동기적)
                     return Flux.fromIterable(latestPerSensor.values());
                 });
     }
@@ -70,13 +71,17 @@ public class ZoneStatusService {
     // 서비스 내부에서 사용하는 메서드
     public Flux<SensorDataDto> getRecentSensorDataFromMultipleIndices(LocalDateTime fromTime) {
         List<String> indices = List.of(
-                "iot-sensor-data",   // 🔥 AWS opensearch 임시 Index
+                "iot-sensor-data",  // 🔥 AWS opensearch 임시 Index
                 "sensor_data_stream",  // local opensearch 임시 Index (temp, humi, esd, windDir)
                 "particle_sensor_data_stream",  // local opensearch 임시 Index (particle)
-                "sensor_data_stream_4",
-                "sensor_data_stream_5"
+                "temp_sensor_data_stream",
+                "humi_sensor_data_stream",
+                "esd_sensor_data_stream",
+                "winddir_sensor_data_stream"
         );
 
+        // 🖥️ 병렬 처리 (여러 Flux를 동시에 병합하여 하나의 Flux화)
+        // (순서 보장 X 각 Flux에서 오는 값 동시 처리)
         return Flux.merge(
                 indices.stream()
                         .map(index -> searchFromIndexIfExists(index, fromTime))
@@ -96,6 +101,7 @@ public class ZoneStatusService {
                     }
 
                     // 인덱스가 존재하면 검색 실행
+                    // opensearch request 생성
                     SearchRequest request = new SearchRequest(index);
                     RangeQueryBuilder rangeQuery = QueryBuilders
                             .rangeQuery("timestamp")
@@ -130,7 +136,10 @@ public class ZoneStatusService {
                     }
                     return result;
                 })
+                // 탄력적으로 생성되는 스레드 풀 사용 (별도의 스레드 풀에서 실행)
+                // 백그라운드 스레드에서 실행
                 .subscribeOn(Schedulers.boundedElastic())
+                // 각 데이터 병렬처리
                 .flatMapMany(Flux::fromIterable)
                 // 에러나면 빈 Flux로 대체해서 병합 시 전체 중단 방지
                 .onErrorResume(e -> Flux.empty());

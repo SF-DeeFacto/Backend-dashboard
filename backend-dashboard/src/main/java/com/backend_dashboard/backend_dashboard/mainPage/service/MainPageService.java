@@ -67,8 +67,10 @@ public class MainPageService {
                 "iot-sensor-data",  // 🔥 AWS opensearch 임시 Index
                 "sensor_data_stream",  // local opensearch 임시 Index (temp, humi, esd, windDir)
                 "particle_sensor_data_stream",  // local opensearch 임시 Index (particle)
-                "sensor_data_stream_4",
-                "sensor_data_stream_5"
+                "temp_sensor_data_stream",
+                "humi_sensor_data_stream",
+                "esd_sensor_data_stream",
+                "winddir_sensor_data_stream"
         );
 
         return Flux.merge(
