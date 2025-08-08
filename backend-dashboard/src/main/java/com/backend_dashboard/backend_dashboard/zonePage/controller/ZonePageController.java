@@ -29,9 +29,9 @@ public class ZonePageController {
     public Flux<List<GroupSensorWithStatusDto>> getZoneSensorData(
             @RequestParam String zoneId
     ) {
-        Instant start = Instant.now().minus(Duration.ofMinutes(3));
+        Instant start = Instant.now().minus(Duration.ofSeconds(3));
         System.out.println(start);
-        return Flux.interval(java.time.Duration.ofSeconds(2))
+        return Flux.interval(java.time.Duration.ofSeconds(5))
                 .flatMap(tick -> {
                     Instant fromTime = start.plus(Duration.ofSeconds(tick*2));
                     return zonePageService.getSensorDataWithStatus(fromTime, zoneId)
