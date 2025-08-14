@@ -46,8 +46,9 @@ public class ZoneAuthFilter implements WebFilter {
                 .map(String::trim)
                 .toList();
 
+
         // 요청 zoneId가 roles에 없으면 접근 거부
-        if(!roles.contains(zoneId)) {
+        if(!roles.contains(String.valueOf(zoneId.charAt(0)))) {
             return sendError(exchange, ErrorCode.FORBIDDEN);
         }
 
