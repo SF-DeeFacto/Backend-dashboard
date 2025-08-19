@@ -1,6 +1,14 @@
 spring:
     application:
         name: backend-dashboard
+
+    data:
+        redis:
+            # Redis 서버 호스트 (환경 변수에서 가져오거나 기본값 사용)
+            host: ${REDIS_HOST:localhost}
+            # Redis 서버 포트 (환경 변수에서 가져오거나 기본값 사용)
+            port: ${REDIS_PORT:6379}
+
     datasource:
         # 본인 mysql url, username, password 설정하시면 됩니다!!
         url: jdbc:mysql://127.0.0.1:3307/dee-facto?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
@@ -37,3 +45,4 @@ opensearch:
 
 server:
     port: 8083
+
