@@ -2,8 +2,10 @@ package com.backend_dashboard.backend_dashboard.zonePage.filter;
 
 import com.backend_dashboard.backend_dashboard.common.dto.ApiResponseDto;
 import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,11 @@ import java.util.List;
 @Component
 public class ZoneAuthFilter implements WebFilter {
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ReactiveRedisTemplate<String, String> redisTemplate;
+
+    public ZoneAuthFilter(ReactiveRedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -36,30 +43,44 @@ public class ZoneAuthFilter implements WebFilter {
             return sendError(exchange, ErrorCode.FORBIDDEN);
         }
 
-        // header에서 X-Role 읽기
-        List<String> roleHeader = exchange.getRequest().getHeaders().get("X-Role");
-        if(roleHeader == null || roleHeader.isEmpty()) {
+        // Header에서 employeeId 추출
+        String employeeId = exchange.getRequest().getHeaders().getFirst("X-Employee-Id");
+        if(employeeId == null || employeeId.isEmpty()) {
             return sendError(exchange, ErrorCode.UNAUTHORIZED);
         }
 
-        List<String> roles = Arrays.stream(roleHeader.get(0).split(","))
-                .map(String::trim)
-                .toList();
+        // Redis에서 scope 조회 및 권한 검증
+        return redisTemplate.opsForValue()
+                .get(employeeId)
+                .flatMap(value -> {
+                    if(value == null || value.isEmpty()) {
+                        return sendError(exchange, ErrorCode.UNAUTHORIZED);
+                    }
 
+                    // scope 추출
+                    List<String> scopes;
+                    try{
+                        JsonNode node = objectMapper.readTree(value);
+                        String scopeStr = node.path("scope").asText();
+                        scopes = Arrays.stream(scopeStr.split(","))
+                                .map(String::trim)
+                                .toList();
+                    } catch (Exception e) {
+                        return sendError(exchange, ErrorCode.INTERNAL_ERROR);
+                    }
 
-        // 요청 zoneId가 roles에 없으면 접근 거부
-        if(!roles.contains(String.valueOf(zoneId.charAt(0)))) {
-            return sendError(exchange, ErrorCode.FORBIDDEN);
-        }
+                    // zoneId와 scope 매칭
+                    String zoneScope = String.valueOf(zoneId.charAt(0));
+                    if(!scopes.contains(zoneScope)) {
+                        return sendError(exchange, ErrorCode.FORBIDDEN);
+                    }
 
-        return chain.filter(exchange);
+                    return chain.filter(exchange);
+                })
+                .switchIfEmpty(sendError(exchange, ErrorCode.UNAUTHORIZED));
 
     }
 
-//    private String extractZoneId(String path) {
-//        String[] parts = path.split("/");
-//        return (parts.length >=4) ? parts[3] : null;
-//    }
 
     private Mono<Void> sendError(ServerWebExchange exchange, ErrorCode errorCode) {
         try {
