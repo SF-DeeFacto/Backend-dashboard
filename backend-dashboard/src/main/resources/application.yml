@@ -1,4 +1,7 @@
 spring:
+    config:
+        import: optional:file:.env[.properties]  # .env import
+
     application:
         name: backend-dashboard
     datasource:
@@ -36,4 +39,8 @@ opensearch:
     password: StrongPassword22!
 
 server:
+<<<<<<< Updated upstream
     port: 8083
+=======
+    port: 8083
+>>>>>>> Stashed changes
