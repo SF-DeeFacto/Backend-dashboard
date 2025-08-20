@@ -2,6 +2,7 @@ package com.backend_dashboard.backend_dashboard.zonePage.filter;
 
 import com.backend_dashboard.backend_dashboard.common.dto.ApiResponseDto;
 import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,6 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -50,34 +50,30 @@ public class ZoneAuthFilter implements WebFilter {
         }
 
         // Redis에서 scope 조회 및 권한 검증
+        String key = "user:"+employeeId;
         return redisTemplate.opsForValue()
-                .get(employeeId)
+                .get(key)
                 .flatMap(value -> {
-                    if(value == null || value.isEmpty()) {
-                        return sendError(exchange, ErrorCode.UNAUTHORIZED);
-                    }
-
                     // scope 추출
-                    List<String> scopes;
                     try{
                         JsonNode node = objectMapper.readTree(value);
                         String scopeStr = node.path("scope").asText();
-                        scopes = Arrays.stream(scopeStr.split(","))
+                        List<String> scopes = Arrays.stream(scopeStr.split(","))
                                 .map(String::trim)
                                 .toList();
-                    } catch (Exception e) {
+
+                        // zoneId와 scope 매칭
+                        String zoneScope = String.valueOf(zoneId.charAt(0));
+                        if(!scopes.contains(zoneScope)) {
+                            return sendError(exchange, ErrorCode.FORBIDDEN);
+                        }
+                        return chain.filter(exchange);
+                    } catch (JsonProcessingException e) {
                         return sendError(exchange, ErrorCode.INTERNAL_ERROR);
                     }
-
-                    // zoneId와 scope 매칭
-                    String zoneScope = String.valueOf(zoneId.charAt(0));
-                    if(!scopes.contains(zoneScope)) {
-                        return sendError(exchange, ErrorCode.FORBIDDEN);
-                    }
-
-                    return chain.filter(exchange);
                 })
                 .switchIfEmpty(sendError(exchange, ErrorCode.UNAUTHORIZED));
+
 
     }
 
