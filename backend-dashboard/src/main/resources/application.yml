@@ -1,6 +1,11 @@
 spring:
     application:
         name: dashboard-service
+
+    # env 파일 환경변수 주입
+    config:
+        import: "optional:dotenv:"
+
     datasource:
         # 본인 mysql url, username, password 설정하시면 됩니다!!
         url: jdbc:mysql://127.0.0.1:3307/dee-facto?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
