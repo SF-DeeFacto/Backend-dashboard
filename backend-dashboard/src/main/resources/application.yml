@@ -1,11 +1,11 @@
 spring:
     application:
-        name: backend-dashboard
+        name: dashboard-service
+
 
     # env 파일 환경변수 주입
     config:
         import: "optional:dotenv:"
-
 
     data:
         redis:
