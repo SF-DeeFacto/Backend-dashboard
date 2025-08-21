@@ -2,9 +2,17 @@ spring:
     application:
         name: dashboard-service
 
+
     # env 파일 환경변수 주입
     config:
         import: "optional:dotenv:"
+
+    data:
+        redis:
+            # Redis 서버 호스트 (환경 변수에서 가져오거나 기본값 사용)
+            host: ${REDIS_HOST:localhost}
+            # Redis 서버 포트 (환경 변수에서 가져오거나 기본값 사용)
+            port: ${REDIS_PORT:6379}
 
     datasource:
         # 본인 mysql url, username, password 설정하시면 됩니다!!
