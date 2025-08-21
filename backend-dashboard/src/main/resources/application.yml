@@ -2,6 +2,11 @@ spring:
     application:
         name: backend-dashboard
 
+    # env 파일 환경변수 주입
+    config:
+        import: "optional:dotenv:"
+
+
     data:
         redis:
             # Redis 서버 호스트 (환경 변수에서 가져오거나 기본값 사용)
@@ -45,4 +50,3 @@ opensearch:
 
 server:
     port: 8083
-
