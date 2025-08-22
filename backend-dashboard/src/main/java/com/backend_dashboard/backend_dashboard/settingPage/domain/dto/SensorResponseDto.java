@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class SensorDisplayDto {
+public class SensorResponseDto {
     private String sensorId;
     private String zoneId;
     private String sensorType;
