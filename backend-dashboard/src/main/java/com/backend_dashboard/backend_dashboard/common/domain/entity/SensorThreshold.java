@@ -1,6 +1,7 @@
 package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Setter;
 import lombok.Getter;
 
@@ -43,5 +44,5 @@ public class SensorThreshold {
     private String updatedUserId;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 }

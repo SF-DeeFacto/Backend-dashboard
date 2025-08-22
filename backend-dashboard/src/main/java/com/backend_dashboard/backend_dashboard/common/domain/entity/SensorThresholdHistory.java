@@ -1,6 +1,8 @@
 package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
 
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Builder
 @Table(name = "sensor_threshold_history")
 public class SensorThresholdHistory {
 
@@ -38,6 +41,6 @@ public class SensorThresholdHistory {
     private String updatedUserId;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 }
 
