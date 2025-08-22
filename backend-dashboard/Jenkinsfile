@@ -90,8 +90,10 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE_NAME}", "--build-arg APP_NAME=${APP_NAME} .")
+                dir('backend-dashboard') {  // Dockerfile 있는 디렉토리로 이동
+                    script {
+                        docker.build("${DOCKER_IMAGE_NAME}", "--build-arg APP_NAME=${APP_NAME} .")
+                    }
                 }
             }
         }
