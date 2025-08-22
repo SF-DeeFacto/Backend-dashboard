@@ -7,12 +7,20 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserCacheDto {
-    private Long Id;
+    // 고유식별번호
+    private Long id;
+    // 사번
     private String employeeId;
-    private String role;
-    private String shift;
+    // 이름
     private String name;
+    // 권한
+    private String role;
+    // 구역 범위
+    private String scope;
+    // 근무시간
+    private String shift;
 }
+
