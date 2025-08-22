@@ -1,11 +1,11 @@
 package com.backend_dashboard.backend_dashboard.mainPage.service;
 
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.GenericSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ParticleSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.SensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.GenericSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ParticleSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.SensorDataDto;
 import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ZoneStatusDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.entity.SensorThreshold;
-import com.backend_dashboard.backend_dashboard.mainPage.repository.SensorThresholdRepository;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
+import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -71,13 +71,18 @@ public class ZoneStatusService {
     // 서비스 내부에서 사용하는 메서드
     public Flux<SensorDataDto> getRecentSensorDataFromMultipleIndices(LocalDateTime fromTime) {
         List<String> indices = List.of(
-                "iot-sensor-data",  // 🔥 AWS opensearch 임시 Index
-                "sensor_data_stream",  // local opensearch 임시 Index (temp, humi, esd, windDir)
-                "particle_sensor_data_stream",  // local opensearch 임시 Index (particle)
-                "temp_sensor_data_stream",
-                "humi_sensor_data_stream",
-                "esd_sensor_data_stream",
-                "winddir_sensor_data_stream"
+//                "iot-sensor-data",  // 🔥 AWS opensearch 임시 Index
+                "iot-winddirection",
+                "iot-temperature",
+                "iot-particle",
+                "iot-humidity",
+                "iot-electrostatic"
+//                "sensor_data_stream",  // local opensearch 임시 Index (temp, humi, esd, windDir)
+//                "particle_sensor_data_stream",  // local opensearch 임시 Index (particle)
+//                "temp_sensor_data_stream",
+//                "humi_sensor_data_stream",
+//                "esd_sensor_data_stream",
+//                "winddir_sensor_data_stream"
         );
 
         // 🖥️ 병렬 처리 (여러 Flux를 동시에 병합하여 하나의 Flux화)
@@ -97,6 +102,7 @@ public class ZoneStatusService {
                     boolean exists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
                     if (!exists) {
                         // 인덱스 없으면 빈 결과 리턴
+                        log.info("인덱스 없음");
                         return Collections.<SensorDataDto>emptyList();
                     }
 
@@ -145,20 +151,27 @@ public class ZoneStatusService {
                 .onErrorResume(e -> Flux.empty());
     }
 
+    // Controller가 호출하는 메소드
     public List<ZoneStatusDto> evaluateZoneStatuses(List<SensorDataDto> sensors) {
         // zoneId -> 해당 zone의 센서 리스트 분리
         Map<String, List<SensorDataDto>> zoneMap = sensors.stream()
                 .collect(Collectors.groupingBy(SensorDataDto::getZoneId));
 
         Map<String, SensorThreshold> thresholdMap = thresholdRepository.findAll().stream()
-                .collect(Collectors.toMap(SensorThreshold::getSensorType, t -> t));
+                .collect(Collectors.toMap(
+                        t -> t.getZoneId().toUpperCase() + "-" + t.getSensorType(),
+                        t -> t
+                ));
 
         List<ZoneStatusDto> results = new ArrayList<>();
 
+        // String: ZoneId (ZoneName)
         for (Map.Entry<String, List<SensorDataDto>> entry : zoneMap.entrySet()) {
             String zoneName = entry.getKey();
             List<SensorDataDto> sensorList = entry.getValue();
 
+            // sensorList에는 {sensorId, sensorType, TimeStamp, zoneId}
+            // thresholdMap에는 {key: ZoneId-SensorType, value: {id, zoneId, sensorType, warningLow, warningHigh, alertLow, alertHigh, updatedUserId, updatedAt}}
             String status = evaluateZoneStatus(sensorList, thresholdMap);
             results.add(new ZoneStatusDto(zoneName, status));
         }
@@ -166,34 +179,37 @@ public class ZoneStatusService {
         return results;
     }
 
+    // sensorList에는 {sensorId, sensorType, TimeStamp, zoneId}
+    // thresholdMap에는 {key: ZoneId-SensorType, value: {id, zoneId, sensorType, warningLow, warningHigh, alertLow, alertHigh, updatedUserId, updatedAt}}
     private String evaluateZoneStatus(List<SensorDataDto> sensors, Map<String, SensorThreshold> thresholdMap) {
         boolean hasRed = false;
         boolean hasYellow = false;
 
         for (SensorDataDto dto : sensors) {
+            String zoneId = dto.getZoneId();
             String type = dto.getSensorType();
 
             if (type.startsWith("particle")) {
                 ParticleSensorDataDto pDto = (ParticleSensorDataDto) dto;
 
-                if (checkAlertThreshold("particle_0_1", pDto.getVal_0_1(), thresholdMap)) {
+                if (checkAlertThreshold("particle_0_1", zoneId,  pDto.getVal_0_1um(), thresholdMap)) {
                     hasRed = true;
-                } else if (checkAlertThreshold("particle_0_3", pDto.getVal_0_3(), thresholdMap)) {
+                } else if (checkAlertThreshold("particle_0_3", zoneId, pDto.getVal_0_3um(), thresholdMap)) {
                     hasRed = true;
-                } else if (checkAlertThreshold("particle_0_5", pDto.getVal_0_5(), thresholdMap)) {
+                } else if (checkAlertThreshold("particle_0_5", zoneId, pDto.getVal_0_5um(), thresholdMap)) {
                     hasRed = true;
-                } else if (checkWarningThreshold("particle_0_1", pDto.getVal_0_1(), thresholdMap)) {
+                } else if (checkWarningThreshold("particle_0_1", zoneId, pDto.getVal_0_1um(), thresholdMap)) {
                     hasYellow = true;
-                } else if (checkWarningThreshold("particle_0_3", pDto.getVal_0_3(), thresholdMap)) {
+                } else if (checkWarningThreshold("particle_0_3", zoneId, pDto.getVal_0_3um(), thresholdMap)) {
                     hasYellow = true;
-                } else if (checkWarningThreshold("particle_0_5", pDto.getVal_0_5(), thresholdMap)) {
+                } else if (checkWarningThreshold("particle_0_5", zoneId, pDto.getVal_0_5um(), thresholdMap)) {
                     hasYellow = true;
                 }
             } else {
                 double val = ((GenericSensorDataDto) dto).getVal();
-                if (checkAlertThreshold(type, val, thresholdMap)) {
+                if (checkAlertThreshold(type, zoneId, val, thresholdMap)) {
                     hasRed = true;
-                } else if (checkWarningThreshold(type, val, thresholdMap)) {
+                } else if (checkWarningThreshold(type, zoneId, val, thresholdMap)) {
                     hasYellow = true;
                 }
             }
@@ -204,8 +220,9 @@ public class ZoneStatusService {
         return "GREEN";
     }
 
-    private boolean checkAlertThreshold(String type, Double val, Map<String, SensorThreshold> thresholdMap) {
-        SensorThreshold threshold = thresholdMap.get(type);
+    private boolean checkAlertThreshold(String type, String zoneId, Double val, Map<String, SensorThreshold> thresholdMap) {
+        String key = zoneId.charAt(0) + "-" + type;
+        SensorThreshold threshold = thresholdMap.get(key);
         if (threshold == null) {
             System.out.println("임계치가 없습니다!!!!!!!!!!!!!!!!!!!!!!!!!");
             return false;
@@ -215,8 +232,9 @@ public class ZoneStatusService {
                 || (threshold.getAlertHigh() != null && val > threshold.getAlertHigh());
     }
 
-    private boolean checkWarningThreshold(String type, Double val, Map<String, SensorThreshold> thresholdMap) {
-        SensorThreshold threshold = thresholdMap.get(type);
+    private boolean checkWarningThreshold(String type, String zoneId, Double val, Map<String, SensorThreshold> thresholdMap) {
+        String key = zoneId.charAt(0) + "-" + type;
+        SensorThreshold threshold = thresholdMap.get(key);
         if (threshold == null) return false;
 
         return (threshold.getWarningLow() != null && val < threshold.getWarningLow())
