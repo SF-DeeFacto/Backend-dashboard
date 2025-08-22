@@ -1,6 +1,6 @@
 package com.backend_dashboard.backend_dashboard.test;
 
-import com.backend_dashboard.backend_dashboard.common.dto.ApiResponseDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ApiResponseDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

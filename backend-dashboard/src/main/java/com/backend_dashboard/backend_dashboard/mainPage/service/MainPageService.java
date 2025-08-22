@@ -1,7 +1,7 @@
 package com.backend_dashboard.backend_dashboard.mainPage.service;
 
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.GenericSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ParticleSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.GenericSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ParticleSensorDataDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.client.indices.GetIndexRequest;
@@ -15,7 +15,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.stereotype.Service;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.SensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.SensorDataDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
