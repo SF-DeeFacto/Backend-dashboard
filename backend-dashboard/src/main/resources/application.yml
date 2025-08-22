@@ -6,24 +6,11 @@ spring:
     config:
         import: "optional:dotenv:"
 
-    data:
-        redis:
-            # Redis 서버 호스트 (환경 변수에서 가져오거나 기본값 사용)
-            host: ${REDIS_HOST:localhost}
-            # Redis 서버 포트 (환경 변수에서 가져오거나 기본값 사용)
-            port: ${REDIS_PORT:6379}
-            password: ${REDIS_PASSWORD:StrongPassword22!}
+    redis:
+        host: ${REDIS_HOST:localhost}
+        port: ${REDIS_PORT:6379}
+        password: ${REDIS_PASSWORD:StrongPassword22!}
 
-    #    datasource:
-    #        # 본인 mysql url, username, password 설정하시면 됩니다!!
-    #        url: jdbc:mysql://127.0.0.1:3307/dee-facto?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
-    #        username: root
-    #        password: 1234
-    #        driver-class-name: com.mysql.cj.jdbc.Driver
-    #        hikari:
-    #            connection-test-query: SELECT 1
-    #            validation-timeout: 5000
-    #            maximum-pool-size: 10  # 추가: 커넥션 풀 크기 설정
     datasource:
         url: jdbc:mysql://deefacto-rds-backend-prod.ctii4asq6dma.ap-northeast-2.rds.amazonaws.com:3306/deefacto?serverTimezone=UTC&useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
         username: admin
