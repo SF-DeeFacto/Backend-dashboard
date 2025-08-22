@@ -1,14 +1,14 @@
 package com.backend_dashboard.backend_dashboard.settingPage.service;
 
-import com.backend_dashboard.backend_dashboard.mainPage.domain.entity.SensorThreshold;
-import com.backend_dashboard.backend_dashboard.mainPage.repository.SensorThresholdRepository;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
+import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdRepository;
 import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
 import com.backend_dashboard.backend_dashboard.redis.service.UserCacheService;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorDisplayDto;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorInfoDto;
-import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorThresholdDto;
 import com.backend_dashboard.backend_dashboard.settingPage.repository.SensorSummaryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SensorSettingService {
@@ -26,6 +27,7 @@ public class SensorSettingService {
     // 센서 목록 조회 함수
     public List<SensorDisplayDto> getSensorList(String sensorType, String zoneId) {
         List<SensorInfoDto> basicSensors;
+        log.info("[센서 목록 조회]: sensorType: {} zoneId: {}", sensorType, zoneId);
         if(sensorType != null && zoneId != null) {
             basicSensors = sensorSummaryRepository.findDistinctByTypeAndZone(sensorType, zoneId);
         } else if(sensorType != null) {

@@ -2,7 +2,6 @@ spring:
     application:
         name: dashboard-service
 
-
     # env 파일 환경변수 주입
     config:
         import: "optional:dotenv:"
@@ -13,17 +12,31 @@ spring:
             host: ${REDIS_HOST:localhost}
             # Redis 서버 포트 (환경 변수에서 가져오거나 기본값 사용)
             port: ${REDIS_PORT:6379}
+            password: ${REDIS_PASSWORD:StrongPassword22!}
 
+    #    datasource:
+    #        # 본인 mysql url, username, password 설정하시면 됩니다!!
+    #        url: jdbc:mysql://127.0.0.1:3307/dee-facto?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
+    #        username: root
+    #        password: 1234
+    #        driver-class-name: com.mysql.cj.jdbc.Driver
+    #        hikari:
+    #            connection-test-query: SELECT 1
+    #            validation-timeout: 5000
+    #            maximum-pool-size: 10  # 추가: 커넥션 풀 크기 설정
     datasource:
-        # 본인 mysql url, username, password 설정하시면 됩니다!!
-        url: jdbc:mysql://127.0.0.1:3307/dee-facto?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
-        username: root
-        password: 1234
+        url: jdbc:mysql://deefacto-rds-backend-prod.ctii4asq6dma.ap-northeast-2.rds.amazonaws.com:3306/deefacto?serverTimezone=UTC&useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
+        username: admin
+        password: deefacto6!
         driver-class-name: com.mysql.cj.jdbc.Driver
         hikari:
             connection-test-query: SELECT 1
             validation-timeout: 5000
-            maximum-pool-size: 10  # 추가: 커넥션 풀 크기 설정
+            maximum-pool-size: 10
+            minimum-idle: 5
+            idle-timeout: 30000
+            max-lifetime: 1800000
+
 
     jpa:
         database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -41,10 +54,10 @@ spring:
                     time_zone: UTC  # 타임존 설정 추가
 
 opensearch:
-  # AWS opensearch 이용 시, 하단 host 사용
-  #    host: https://b7c449ee92a1.ngrok-free.app
-  # local opensearch 이용 시, 하단 host, username, password 사용
-    host: https://localhost:9200
+    # AWS opensearch 이용 시, 하단 host 사용
+    host: https://21664e38ec39.ngrok-free.app
+    # local opensearch 이용 시, 하단 host, username, password 사용
+    #    host: https://localhost:9200
     username: admin
     password: StrongPassword22!
 

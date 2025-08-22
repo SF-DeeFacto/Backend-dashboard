@@ -7,22 +7,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "sensor_summary")
 public class SensorSummary {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private LocalDateTime minute;
-
-    @Column(name = "sensor_type")
-    private String sensorType;
+    @EmbeddedId
+    private SensorSummaryId id;   // 복합키
 
     private String unit;
-
-    @Column(name = "sensor_id")
-    private String sensorId;
-
-    @Column(name = "zone_id")
-    private String zoneId;
 
     @Column(name = "avg_val")
     private Double avgVal;
