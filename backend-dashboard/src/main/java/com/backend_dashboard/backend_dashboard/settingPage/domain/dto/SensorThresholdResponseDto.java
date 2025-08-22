@@ -1,22 +1,23 @@
 package com.backend_dashboard.backend_dashboard.settingPage.domain.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
+import jakarta.persistence.Column;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@RequiredArgsConstructor
-public class SensorThresholdDto {
+@NoArgsConstructor
+@Builder
+public class SensorThresholdResponseDto {
+    private String zoneId;
     private String sensorType;
     private Double warningLow;
     private Double warningHigh;
     private Double alertLow;
     private Double alertHigh;
-    private String updatedUserUd;
+    private String updatedUserId;
     private LocalDateTime updatedAt;
 }
