@@ -3,6 +3,9 @@
 # ========================================
 FROM gradle:8.4-jdk17 AS build
 
+# 빌드 시점에 APP_NAME 전달 받기
+ARG APP_NAME=dashboard_service
+
 # 작업 디렉토리 설정
 WORKDIR /app
 
