@@ -1,9 +1,10 @@
 package com.backend_dashboard.backend_dashboard.zonePage.service;
 
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.GenericSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ParticleSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.entity.SensorThreshold;
-import com.backend_dashboard.backend_dashboard.mainPage.repository.SensorThresholdRepository;
+
+import com.backend_dashboard.backend_dashboard.common.domain.dto.GenericSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ParticleSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
+import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdRepository;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorDataDto;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorWithStatusDto;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.SensorWithStatusDto;
@@ -33,9 +34,9 @@ public class SensorService {
 
                                 if (sensor instanceof ParticleSensorDataDto) {
                                     ParticleSensorDataDto particleSensor = (ParticleSensorDataDto) sensor;
-                                    sensorValuesMap.put("0.1", particleSensor.getVal_0_1());
-                                    sensorValuesMap.put("0.3", particleSensor.getVal_0_3());
-                                    sensorValuesMap.put("0.5", particleSensor.getVal_0_5());
+                                    sensorValuesMap.put("0.1", particleSensor.getVal_0_1um());
+                                    sensorValuesMap.put("0.3", particleSensor.getVal_0_3um());
+                                    sensorValuesMap.put("0.5", particleSensor.getVal_0_5um());
                                 } else if (sensor instanceof GenericSensorDataDto) {
                                     GenericSensorDataDto genericSensor = (GenericSensorDataDto) sensor;
                                     sensorValuesMap.put("value", genericSensor.getVal());

@@ -1,11 +1,9 @@
 package com.backend_dashboard.backend_dashboard.zonePage.service;
 
-import com.backend_dashboard.backend_dashboard.common.dto.ApiResponseDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.GenericSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ParticleSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.SensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.entity.SensorThreshold;
-import com.backend_dashboard.backend_dashboard.mainPage.repository.SensorThresholdRepository;
+
+import com.backend_dashboard.backend_dashboard.common.domain.dto.SensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
+import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdRepository;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorDataDto;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorWithStatusDto;
 import com.fasterxml.jackson.core.JsonProcessingException;

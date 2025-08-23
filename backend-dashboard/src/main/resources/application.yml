@@ -42,7 +42,7 @@ spring:
 
 opensearch:
     # AWS opensearch 이용 시, 하단 host 사용
-    host: https://21664e38ec39.ngrok-free.app
+    host: https://5a195945ecf3.ngrok-free.app
     # local opensearch 이용 시, 하단 host, username, password 사용
     #    host: https://localhost:9200
     username: admin

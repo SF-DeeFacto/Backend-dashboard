@@ -29,6 +29,7 @@ RUN gradle build -x test --no-daemon
 # 런타임 단계 (Runtime Stage)
 # ========================================
 FROM eclipse-temurin:17-jre-alpine
+
 LABEL maintainer="deefacto-Dashboard"
 LABEL description="Dashboard service for Deefacto Platform"
 
@@ -38,6 +39,7 @@ RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
 COPY --from=build /app/build/libs/*.jar app.jar
+
 RUN chown -R appuser:appgroup /app
 USER appuser
 

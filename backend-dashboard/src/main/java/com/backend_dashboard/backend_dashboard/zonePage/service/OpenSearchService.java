@@ -1,8 +1,9 @@
 package com.backend_dashboard.backend_dashboard.zonePage.service;
 
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.GenericSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.ParticleSensorDataDto;
-import com.backend_dashboard.backend_dashboard.mainPage.domain.dto.SensorDataDto;
+
+import com.backend_dashboard.backend_dashboard.common.domain.dto.GenericSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ParticleSensorDataDto;
+import com.backend_dashboard.backend_dashboard.common.domain.dto.SensorDataDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
@@ -25,7 +26,6 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,13 +73,19 @@ public class OpenSearchService {
     // 서비스 내부에서 사용하는 메서드, index 기반 오픈서치 연결
     public Flux<SensorDataDto> getRecentSensorDataFromMultipleIndices(Instant fromTime, String zoneId) {
         List<String> indices = List.of(
-                "iot-sensor-data",  // 🔥 AWS opensearch 임시 Index
-                "sensor_data_stream",  // local opensearch 임시 Index (temp, humi, esd, windDir)
-                "particle_sensor_data_stream",  // local opensearch 임시 Index (particle)
-                "temp_sensor_data_stream",
-                "humi_sensor_data_stream",
-                "esd_sensor_data_stream",
-                "winddir_sensor_data_stream"
+//                "iot-sensor-data",  // 🔥 AWS opensearch 임시 Index
+//                "sensor_data_stream",  // local opensearch 임시 Index (temp, humi, esd, windDir)
+//                "particle_sensor_data_stream",  // local opensearch 임시 Index (particle)
+//                "temp_sensor_data_stream",
+//                "humi_sensor_data_stream",
+//                "esd_sensor_data_stream",
+//                "winddir_sensor_data_stream"
+                // AWS OpenSearch index
+                "iot-winddirection",
+                "iot-temperature",
+                "iot-particle",
+                "iot-humidity",
+                "iot-electrostatic"
         );
 
         return Flux.merge(

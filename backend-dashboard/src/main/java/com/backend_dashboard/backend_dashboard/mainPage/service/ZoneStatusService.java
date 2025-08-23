@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ZoneStatusService {
 
-    private final MainPageService mainPageService;
     private final SensorThresholdRepository thresholdRepository;
     private final RestHighLevelClient client;
     private final ObjectMapper objectMapper = new ObjectMapper();
