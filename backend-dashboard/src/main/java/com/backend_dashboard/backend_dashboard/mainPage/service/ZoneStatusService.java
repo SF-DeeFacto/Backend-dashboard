@@ -192,17 +192,17 @@ public class ZoneStatusService {
             if (type.startsWith("particle")) {
                 ParticleSensorDataDto pDto = (ParticleSensorDataDto) dto;
 
-                if (checkAlertThreshold("particle_0_1", zoneId,  pDto.getVal_0_1um(), thresholdMap)) {
+                if (checkAlertThreshold("particle_0_1um", zoneId,  pDto.getVal_0_1um(), thresholdMap)) {
                     hasRed = true;
-                } else if (checkAlertThreshold("particle_0_3", zoneId, pDto.getVal_0_3um(), thresholdMap)) {
+                } else if (checkAlertThreshold("particle_0_3um", zoneId, pDto.getVal_0_3um(), thresholdMap)) {
                     hasRed = true;
-                } else if (checkAlertThreshold("particle_0_5", zoneId, pDto.getVal_0_5um(), thresholdMap)) {
+                } else if (checkAlertThreshold("particle_0_5um", zoneId, pDto.getVal_0_5um(), thresholdMap)) {
                     hasRed = true;
-                } else if (checkWarningThreshold("particle_0_1", zoneId, pDto.getVal_0_1um(), thresholdMap)) {
+                } else if (checkWarningThreshold("particle_0_1um", zoneId, pDto.getVal_0_1um(), thresholdMap)) {
                     hasYellow = true;
-                } else if (checkWarningThreshold("particle_0_3", zoneId, pDto.getVal_0_3um(), thresholdMap)) {
+                } else if (checkWarningThreshold("particle_0_3um", zoneId, pDto.getVal_0_3um(), thresholdMap)) {
                     hasYellow = true;
-                } else if (checkWarningThreshold("particle_0_5", zoneId, pDto.getVal_0_5um(), thresholdMap)) {
+                } else if (checkWarningThreshold("particle_0_5um", zoneId, pDto.getVal_0_5um(), thresholdMap)) {
                     hasYellow = true;
                 }
             } else {
