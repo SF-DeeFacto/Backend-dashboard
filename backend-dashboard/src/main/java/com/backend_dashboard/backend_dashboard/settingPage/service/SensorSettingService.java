@@ -11,6 +11,9 @@ import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,7 +29,7 @@ public class SensorSettingService {
     private final SensorThresholdHistoryRepository sensorThresholdHistoryRepository;
 
     // 🖥️ 센서 목록 조회
-    public List<SensorResponseDto> getSensorList(UserCacheDto userInfo, String sensorType, String zoneId) {
+    public Page<SensorResponseDto> getSensorList(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
 
         // User 권한 확인 (user's Scope 내부 sensor's ZoneId 포함 여부 확인)
         if(!isZoneInUserScope(userInfo, zoneId)) {
@@ -37,7 +40,7 @@ public class SensorSettingService {
         List<SensorResponseProjection> projections = sensorMetaRepository.findAllWithThresholdByUserScope(userInfo.getScope(), sensorType, zoneId);
 
         // DTO 변환 (projections(repository 쿼리 결과 타입) -> SensorResponseDto)
-        List<SensorResponseDto> seonsorList = projections.stream()
+        List<SensorResponseDto> sensorList = projections.stream()
                 .map(p -> new SensorResponseDto(
                         p.getSensorId(), p.getZoneId(), p.getSensorType(),
                         p.getUpdatedAt(), p.getUpdatedUserId(),
@@ -45,7 +48,12 @@ public class SensorSettingService {
                         p.getAlertLow(), p.getAlertHigh()
                 ))
                 .collect(Collectors.toList());
-        return seonsorList;
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), sensorList.size());
+        List<SensorResponseDto> content = sensorList.subList(start, end);
+
+        return new PageImpl<>(content, pageable, sensorList.size());
     }
 
     // 🖥️ 센서 임계치 조회
