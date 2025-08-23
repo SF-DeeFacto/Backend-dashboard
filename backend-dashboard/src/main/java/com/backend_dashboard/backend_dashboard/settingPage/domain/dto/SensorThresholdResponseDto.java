@@ -1,9 +1,6 @@
 package com.backend_dashboard.backend_dashboard.settingPage.domain.dto;
 
-import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
-import jakarta.persistence.Column;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter

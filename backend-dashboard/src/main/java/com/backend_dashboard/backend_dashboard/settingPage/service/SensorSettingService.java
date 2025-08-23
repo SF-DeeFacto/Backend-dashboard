@@ -26,8 +26,17 @@ public class SensorSettingService {
     private final SensorThresholdHistoryRepository sensorThresholdHistoryRepository;
 
     // 🖥️ 센서 목록 조회
-    public List<SensorResponseDto> getSensorList(UserCacheDto userInfo) {
-        List<SensorResponseProjection> projections = sensorMetaRepository.findAllWithThresholdByUserScope(userInfo.getScope());
+    public List<SensorResponseDto> getSensorList(UserCacheDto userInfo, String sensorType, String zoneId) {
+
+        // User 권한 확인 (user's Scope 내부 sensor's ZoneId 포함 여부 확인)
+        if(!isZoneInUserScope(userInfo, zoneId)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+
+        // 셉서 목록 DB 조회
+        List<SensorResponseProjection> projections = sensorMetaRepository.findAllWithThresholdByUserScope(userInfo.getScope(), sensorType, zoneId);
+
+        // DTO 변환 (projections(repository 쿼리 결과 타입) -> SensorResponseDto)
         List<SensorResponseDto> seonsorList = projections.stream()
                 .map(p -> new SensorResponseDto(
                         p.getSensorId(), p.getZoneId(), p.getSensorType(),
@@ -50,12 +59,8 @@ public class SensorSettingService {
     // 🖥️ 센서 임계치 수정
     public SensorThresholdResponseDto updateSensorThreshold(SensorThresholdUpdateRequestDto request, UserCacheDto userInfo) {
 
-        // User 권한 내부에서 센서 임계치 수정 요청했는가 여부 판단
-        // 권한 외 요청 시, INVALID_INPUT
-        Set<String> zoneSet = Arrays.stream(userInfo.getScope().split(","))
-                .map(String::trim)
-                .collect(Collectors.toSet());
-        if (!zoneSet.contains(request.getZoneId())) {
+        // User 권한 확인 (user's Scope 내부 수정 sensor's ZoneId 포함 여부 확인)
+        if(!isZoneInUserScope(userInfo, request.getZoneId())) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
 
@@ -75,12 +80,22 @@ public class SensorSettingService {
         SensorThreshold updatedThreshold = sensorThresholdRepository.save(target);
 
         // 임계치 수정 로그 저장
-        // SensorThreshold -> SensorThresholdHistory
         SensorThresholdHistory history = fromThresholdToHistory(updatedThreshold);
         sensorThresholdHistoryRepository.save(history);
 
         // 수정된 임계치 DTO 변환
         return fromEntityToDTO(updatedThreshold);
+    }
+
+    // 권한 확인 메소드 (User's Scope 내부 Sensor's ZoneId 포함 여부 확인)
+    public Boolean isZoneInUserScope(UserCacheDto userInfo, String zoneId) {
+        if(zoneId == null) {
+            return true;
+        }
+        Set<String> zoneSet = Arrays.stream(userInfo.getScope().split(","))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+        return zoneSet.contains(zoneId);
     }
 
     // SensorThreshold(ENTITY) -> SensorThresholdResponseDto(DTO)

@@ -22,6 +22,7 @@ public class SettingController {
     private final UserRedisService userRedisService;
 
     // 센서 목록 조회
+    // zoneId: 3가지 종류 (a,b,c)
     @GetMapping("/sensor")
     public ApiResponseDto<List<SensorResponseDto>> getSensorList(
             @RequestHeader("X-Employee-Id") String employeeId,
@@ -30,7 +31,7 @@ public class SettingController {
             @RequestParam(required = false) String zoneId
     ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        List<SensorResponseDto> sensorList = sensorSettingService.getSensorList(userInfo);
+        List<SensorResponseDto> sensorList = sensorSettingService.getSensorList(userInfo, sensorType, zoneId);
         return ApiResponseDto.createOk(sensorList);
     }
 
