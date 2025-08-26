@@ -2,6 +2,9 @@ spring:
     application:
         name: dashboard-service
 
+#    main:
+#        web-application-type: reactive
+
     # env 파일 환경변수 주입
     config:
         import: "optional:dotenv:"
@@ -9,7 +12,7 @@ spring:
     redis:
         host: ${REDIS_HOST:localhost}
         port: ${REDIS_PORT:6379}
-        password: ${REDIS_PASSWORD:StrongPassword22!}
+
 
     datasource:
         url: jdbc:mysql://deefacto-rds-backend-prod.ctii4asq6dma.ap-northeast-2.rds.amazonaws.com:3306/deefacto?serverTimezone=UTC&useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
@@ -42,9 +45,9 @@ spring:
 
 opensearch:
     # AWS opensearch 이용 시, 하단 host 사용
-    host: https://5a195945ecf3.ngrok-free.app
+    host: http://localhost:9200
     # local opensearch 이용 시, 하단 host, username, password 사용
-    #    host: https://localhost:9200
+    #host: https://localhost:9200
     username: admin
     password: StrongPassword22!
 

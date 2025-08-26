@@ -5,6 +5,7 @@
 //import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.fasterxml.jackson.databind.JsonNode;
 //import com.fasterxml.jackson.databind.ObjectMapper;
+//import lombok.RequiredArgsConstructor;
 //import lombok.extern.slf4j.Slf4j;
 //import org.springframework.data.redis.core.ReactiveRedisTemplate;
 //import org.springframework.http.HttpStatusCode;
@@ -21,9 +22,10 @@
 //
 //@Slf4j
 //@Component
+//@RequiredArgsConstructor
 //public class ZoneAuthFilter implements WebFilter {
 //    private final ObjectMapper objectMapper = new ObjectMapper();
-////    private final ReactiveRedisTemplate<String, String> redisTemplate;
+//    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
 //
 //
 //    @Override
@@ -48,29 +50,32 @@
 //
 //        // Redis에서 scope 조회 및 권한 검증
 //        String key = "user:"+employeeId;
-////        return redisTemplate.opsForValue()
-////                .get(key)
-////                .flatMap(value -> {
-////                    // scope 추출
-////                    try{
-////                        JsonNode node = objectMapper.readTree(value);
-////                        String scopeStr = node.path("scope").asText();
-////                        List<String> scopes = Arrays.stream(scopeStr.split(","))
-////                                .map(String::trim)
-////                                .toList();
-////
-////                        // zoneId와 scope 매칭
-////                        String zoneScope = String.valueOf(zoneId.charAt(0));
-////                        if(!scopes.contains(zoneScope)) {
-////                            return sendError(exchange, ErrorCode.FORBIDDEN);
-////                        }
-////                        return chain.filter(exchange);
-////                    } catch (JsonProcessingException e) {
-////                        return sendError(exchange, ErrorCode.INTERNAL_ERROR);
-////                    }
-////                })
-////                .switchIfEmpty(sendError(exchange, ErrorCode.UNAUTHORIZED));
-//            return null;
+//        return reactiveRedisTemplate.opsForValue()
+//                .get(key)
+//                .flatMap(value -> {
+//                    // scope 추출
+//                    try{
+//                        JsonNode node = objectMapper.readTree(value);
+//                        String scopeStr = node.path("scope").asText();
+//                        List<String> scopes = Arrays.stream(scopeStr.split(","))
+//                                .map(String::trim)
+//                                .toList();
+//
+//                        log.info("employeeId"+employeeId,
+//                                "scope:"+scopes);
+//
+//                        // zoneId와 scope 매칭
+//                        String zoneScope = String.valueOf(zoneId.charAt(0));
+//                        if(!scopes.contains(zoneScope)) {
+//                            return sendError(exchange, ErrorCode.FORBIDDEN);
+//                        }
+//                        return chain.filter(exchange);
+//                    } catch (JsonProcessingException e) {
+//                        return sendError(exchange, ErrorCode.INTERNAL_ERROR);
+//                    }
+//                })
+//                .switchIfEmpty(sendError(exchange, ErrorCode.UNAUTHORIZED));
+////            return null;
 //    }
 //
 //
