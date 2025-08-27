@@ -38,7 +38,7 @@ spring:
 aws:
   credentials:
     access-key: ${AWS_ACCESS_KEY:test}
-    secret-key: ${AWS_SECRET_KEY:test}d
+    secret-key: ${AWS_SECRET_KEY:test}
   region: ${AWS_REGION:ap-northeast-2}
   opensearch:
     host: ${AWS_SQS_QUEUE_URL:http://localhost:9200}
