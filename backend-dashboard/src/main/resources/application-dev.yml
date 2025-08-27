@@ -32,10 +32,13 @@ spring:
     port: ${REDIS_PORT:6379}
     password: ${REDIS_PASSWORD:StrongPassword22!}
 
+  api:
+    weather-api-key: ${WEATHER_API_KEY}
+
 aws:
   credentials:
     access-key: ${AWS_ACCESS_KEY:test}
-    secret-key: ${AWS_SECRET_KEY:test}
+    secret-key: ${AWS_SECRET_KEY:test}d
   region: ${AWS_REGION:ap-northeast-2}
   opensearch:
     host: ${AWS_SQS_QUEUE_URL:http://localhost:9200}
@@ -43,4 +46,6 @@ aws:
   #    host: https://localhost:9200
 #    username: admin
 #    password: StrongPassword22!
+
+
 
