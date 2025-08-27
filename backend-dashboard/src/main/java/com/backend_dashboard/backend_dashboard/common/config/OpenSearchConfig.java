@@ -17,16 +17,16 @@ import javax.net.ssl.SSLContext;
 @Configuration
 public class OpenSearchConfig {
 
-    @Value("${opensearch.host}")
+    @Value("${aws.opensearch.host}")
     private String host;
 
-    // 🔥 AWS 사용 시 주석 처리 필요
-    @Value("${opensearch.username}")
-    private String username;
-
-    // 🔥 AWS 사용 시 주석 처리 필요
-    @Value("${opensearch.password}")
-    private String password;
+//     🔥 AWS 사용 시 주석 처리 필요
+//    @Value("${aws.opensearch.username}")
+//    private String username;
+//
+//    // 🔥 AWS 사용 시 주석 처리 필요
+//    @Value("${aws.opensearch.password}")
+//    private String password;
 
     @Bean
     public RestHighLevelClient restHighLevelClient() throws Exception {
