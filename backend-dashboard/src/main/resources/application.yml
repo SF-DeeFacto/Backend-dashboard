@@ -1,39 +1,7 @@
 spring:
     application:
         name: dashboard-service
-    datasource:
-        # 본인 mysql url, username, password 설정하시면 됩니다!!
-        url: jdbc:mysql://127.0.0.1:3307/dee-facto?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
-        username: root
-        password: 1234
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        hikari:
-            connection-test-query: SELECT 1
-            validation-timeout: 5000
-            maximum-pool-size: 10  # 추가: 커넥션 풀 크기 설정
-
-    jpa:
-        database-platform: org.hibernate.dialect.MySQL8Dialect
-        hibernate:
-            ddl-auto: update
-            naming:
-                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-        show-sql: true
-        generate-ddl: true
-        properties:
-            hibernate:
-                format_sql: true
-                use_sql_comments: true
-                jdbc:
-                    time_zone: UTC  # 타임존 설정 추가
-
-opensearch:
-  # AWS opensearch 이용 시, 하단 host 사용
-  #    host: https://b7c449ee92a1.ngrok-free.app
-  # local opensearch 이용 시, 하단 host, username, password 사용
-    host: https://localhost:9200
-    username: admin
-    password: StrongPassword22!
-
-server:
-    port: 8083
+    profiles:
+        active: ${SPRING_PROFILES_ACTIVE:dev}
+    config:
+        import: optional:file:.env[.properties]

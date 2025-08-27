@@ -1,23 +1,27 @@
-package com.backend_dashboard.backend_dashboard.mainPage.domain.entity;
+package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sensor_threshold")
 @Getter
 @Setter
-@NoArgsConstructor
-public class SensorThreshold {
+@Builder
+@Table(name = "sensor_threshold_history")
+public class SensorThresholdHistory {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "zone_id", nullable = false)
+    private String zoneId;
+
     @Column(name = "sensor_type", nullable = false)
     private String sensorType;
 
@@ -39,3 +43,4 @@ public class SensorThreshold {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
+

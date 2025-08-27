@@ -1,4 +1,4 @@
-package com.backend_dashboard.backend_dashboard.mainPage.config;
+package com.backend_dashboard.backend_dashboard.common.config;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -17,16 +17,16 @@ import javax.net.ssl.SSLContext;
 @Configuration
 public class OpenSearchConfig {
 
-    @Value("${opensearch.host}")
+    @Value("${aws.opensearch.host}")
     private String host;
 
-    // 🔥 AWS 사용 시 주석 처리 필요
-    @Value("${opensearch.username}")
-    private String username;
-
-    // 🔥 AWS 사용 시 주석 처리 필요
-    @Value("${opensearch.password}")
-    private String password;
+//     🔥 AWS 사용 시 주석 처리 필요
+//    @Value("${aws.opensearch.username}")
+//    private String username;
+//
+//    // 🔥 AWS 사용 시 주석 처리 필요
+//    @Value("${aws.opensearch.password}")
+//    private String password;
 
     @Bean
     public RestHighLevelClient restHighLevelClient() throws Exception {
@@ -34,7 +34,7 @@ public class OpenSearchConfig {
 
         final var provider = new BasicCredentialsProvider();
         // 🔥 AWS 사용 시 주석 처리 필요
-        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+//        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
 
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(null, (chain, authType) -> true)
@@ -45,7 +45,7 @@ public class OpenSearchConfig {
                         .setSSLContext(sslContext)
                         .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                         // 🔥 AWS 사용 시 주석 처리 필요
-                        .setDefaultCredentialsProvider(provider)
+//                        .setDefaultCredentialsProvider(provider)
                 );
 
         return new RestHighLevelClient(builder);

@@ -1,4 +1,4 @@
-package com.backend_dashboard.backend_dashboard.mainPage.domain.dto;
+package com.backend_dashboard.backend_dashboard.common.domain.dto;
 
 public interface SensorDataDto {
     String getSensorId();

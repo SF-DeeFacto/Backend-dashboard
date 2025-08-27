@@ -1,4 +1,4 @@
-package com.backend_dashboard.backend_dashboard.common.dto;
+package com.backend_dashboard.backend_dashboard.common.domain.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;

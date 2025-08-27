@@ -1,0 +1,51 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3307}/${DB_NAME:dee-facto}?serverTimezone=UTC&useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1800000
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: ${DEV_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${DEV_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: ${DEV_FORMAT_SQL:true}
+        use_sql_comments: true
+        jdbc:
+          time_zone: UTC  # 타임존 설정 추가
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:StrongPassword22!}
+
+  api:
+    weather-api-key: ${WEATHER_API_KEY}
+
+aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY:test}
+    secret-key: ${AWS_SECRET_KEY:test}d
+  region: ${AWS_REGION:ap-northeast-2}
+  opensearch:
+    host: ${AWS_SQS_QUEUE_URL:http://localhost:9200}
+  # local opensearch 이용 시, 하단 host, username, password 사용
+  #    host: https://localhost:9200
+#    username: admin
+#    password: StrongPassword22!
+
+
+
