@@ -106,4 +106,9 @@ public class WeatherService {
 
         return new HashMap<>();
     }
+
+
+    public void test() {
+        System.out.println("test");
+    }
 }
