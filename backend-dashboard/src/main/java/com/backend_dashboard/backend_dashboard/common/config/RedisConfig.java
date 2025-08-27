@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,8 +37,14 @@ public class RedisConfig {
 //        if (redisPassword != null && !redisPassword.isEmpty()) {
 //            config.setPassword(redisPassword);
 //        }
+        // 2) Lettuce SSL 활성화
+        LettuceClientConfiguration clientConf =
+                LettuceClientConfiguration.builder()
+                        .useSsl()
+                        .build();
 
-        return new LettuceConnectionFactory(config);
+//        return new LettuceConnectionFactory(config);
+        return new LettuceConnectionFactory(config, clientConf);
     }
 
     // 일반 Object용 RedisTemplate
