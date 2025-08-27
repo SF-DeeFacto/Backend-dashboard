@@ -66,6 +66,7 @@ public class ZonePageService {
     // 임계치 데이터 캐싱 적용
     @Cacheable("sensorThresholds")
     public Mono<Map<String, SensorThreshold>> getThresholdMap() {
+        log.info("zone Thresholds 호출 시작");
         return Mono.fromCallable(() -> thresholdRepository.findAll().stream()
                         .collect(Collectors.toMap(
                                 SensorThreshold::getSensorType,

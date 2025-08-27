@@ -156,11 +156,15 @@ public class ZoneStatusService {
         Map<String, List<SensorDataDto>> zoneMap = sensors.stream()
                 .collect(Collectors.groupingBy(SensorDataDto::getZoneId));
 
+        log.info("threshold findAll 시도 시작");
+
         Map<String, SensorThreshold> thresholdMap = thresholdRepository.findAll().stream()
                 .collect(Collectors.toMap(
                         t -> t.getZoneId().toUpperCase() + "-" + t.getSensorType(),
                         t -> t
                 ));
+
+        log.info(" fidAll 결과, thresholdMap:"+thresholdMap);
 
         List<ZoneStatusDto> results = new ArrayList<>();
 
