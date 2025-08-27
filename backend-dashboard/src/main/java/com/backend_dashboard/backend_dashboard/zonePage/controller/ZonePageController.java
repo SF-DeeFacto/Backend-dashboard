@@ -1,5 +1,6 @@
 package com.backend_dashboard.backend_dashboard.zonePage.controller;
 
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ApiResponseDto;
 import com.backend_dashboard.backend_dashboard.common.exception.CustomException;
 import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorWithStatusDto;
@@ -24,7 +25,7 @@ public class ZonePageController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping(value = "/home/zone", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<List<GroupSensorWithStatusDto>> getZoneSensorData(
+    public Flux<ApiResponseDto<List<GroupSensorWithStatusDto>>> getZoneSensorData(
             @RequestParam String zoneId,
             @RequestHeader(value = "X-Employee-Id") String employeeId
     ) {
@@ -47,7 +48,8 @@ public class ZonePageController {
                                             .onErrorResume(e -> {
                                                 log.error("스트림 처리 중 오류 발생", e);
                                                 return Mono.just(List.of());
-                                            });
+                                            })
+                                            .map(ApiResponseDto::createOk);
                                 });
                     } else {
                         return Flux.error(new CustomException(ErrorCode.UNAUTHORIZED));
