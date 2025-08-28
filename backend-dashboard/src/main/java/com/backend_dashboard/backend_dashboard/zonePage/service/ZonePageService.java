@@ -37,6 +37,7 @@ public class ZonePageService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Mono<List<GroupSensorWithStatusDto>> getSensorDataWithStatus(Instant fromTime, String zoneId) {
+        // 임계치 불러오기
         Mono<Map<String, SensorThreshold>> thresholdMapMono = getThresholdMap();
 
         return openSearchService.getLatestSensorData(fromTime, zoneId)
