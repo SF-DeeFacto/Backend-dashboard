@@ -164,7 +164,7 @@ public class ZoneStatusService {
                         t -> t
                 ));
 
-        log.info(" fidAll 결과, thresholdMap:"+thresholdMap);
+        log.info("findAll 결과, thresholdMap size: {}",thresholdMap.size());
 
         List<ZoneStatusDto> results = new ArrayList<>();
 
