@@ -1,13 +1,17 @@
 package com.backend_dashboard.backend_dashboard.settingPage.service;
 
+import com.backend_dashboard.backend_dashboard.common.domain.dto.ApiResponseDto;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdHistory;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdRecommendation;
 import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorMetaRepository;
 import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdHistoryRepository;
+import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdRecommendationRepository;
 import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorThresholdRepository;
 import com.backend_dashboard.backend_dashboard.common.exception.CustomException;
 import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
 import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
+import com.backend_dashboard.backend_dashboard.remote.dto.RecommendThresholdMessage;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +31,14 @@ public class SensorSettingService {
     private final SensorMetaRepository sensorMetaRepository;
     private final SensorThresholdRepository sensorThresholdRepository;
     private final SensorThresholdHistoryRepository sensorThresholdHistoryRepository;
+    private final SensorThresholdRecommendationRepository sensorThresholdRecommendationRepository;
 
     // 🖥️ 센서 목록 조회
     public Page<SensorResponseDto> getSensorList(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
 
-        // User 권한 확인 (user's Scope 내부 sensor's ZoneId 포함 여부 확인)
-        if(!isZoneInUserScope(userInfo, zoneId)) {
-            throw new CustomException(ErrorCode.INVALID_INPUT);
+        // 관리자 권한 확인 (ROOT || ADMIN)
+        if(!isAdmin(userInfo)) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "You are not authorized to read sensor information");
         }
 
         // 셉서 목록 DB 조회
@@ -58,7 +63,16 @@ public class SensorSettingService {
 
     // 🖥️ 센서 임계치 조회
     public List<SensorThresholdResponseDto> getSensorThresholdList(UserCacheDto userInfo) {
+
+        // 관리자 권한 확인 (ROOT || ADMIN)
+        if(!isAdmin(userInfo)) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "You are not authorized to read sensor threshold information");
+        }
+
+        // 센서 임계치 목록 DB 조회
         List<SensorThreshold> thresholdList = sensorThresholdRepository.findByUserScope(userInfo.getScope());
+
+        // DTO 변환
         return thresholdList.stream()
                 .map(this::fromEntityToDTO) // 여기서 fromEntityToDTO 사용
                 .collect(Collectors.toList());
@@ -67,9 +81,9 @@ public class SensorSettingService {
     // 🖥️ 센서 임계치 수정
     public SensorThresholdResponseDto updateSensorThreshold(SensorThresholdUpdateRequestDto request, UserCacheDto userInfo) {
 
-        // User 권한 확인 (user's Scope 내부 수정 sensor's ZoneId 포함 여부 확인)
-        if(!isZoneInUserScope(userInfo, request.getZoneId())) {
-            throw new CustomException(ErrorCode.INVALID_INPUT);
+        // 관리자 권한 확인 (ROOT || ADMIN) && 수정 권한 확인
+        if(!isAdmin(userInfo) || !hasAccess(userInfo, request.getZoneId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "You are not authorized to change sensor threshold information");
         }
 
         // 타겟 임계치 추출
@@ -95,16 +109,59 @@ public class SensorSettingService {
         return fromEntityToDTO(updatedThreshold);
     }
 
-    // 권한 확인 메소드 (User's Scope 내부 Sensor's ZoneId 포함 여부 확인)
-    public Boolean isZoneInUserScope(UserCacheDto userInfo, String zoneId) {
-        if(zoneId == null) {
-            return true;
+    // 🖥️ AI 추천된 센서 임계치 목록 저장 (Create)
+    public void saveSensorThresholdRecommendation(RecommendThresholdMessage recommendThresholdMessage) {
+        // Kafka Response 파싱
+        String zoneId = recommendThresholdMessage.getZoneId();
+        List<SensorThresholdUpdateRequestDto> recommendList = recommendThresholdMessage.getSensorThresholdUpdateRequestDto();
+        LocalDateTime recommendAt = recommendThresholdMessage.getRecommendedAt();
+
+        // recommendList(SensorThresholdUpdateRequestDto) -> SensorThresholdRecommendation -> Save
+        for(SensorThresholdUpdateRequestDto dto: recommendList) {
+            SensorThresholdRecommendation entity = dto.toThresholdRecommendationEntity();
+            entity.setRecommendedAt(recommendAt);
+            entity.setAppliedStatus(false);
+            // 추천받은 일시 기준 적용되고 있는 임계치
+            SensorThresholdHistory sensorThresholdHistory = sensorThresholdHistoryRepository.findTopByZoneIdAndSensorTypeOrderByUpdatedAtDesc(entity.getZoneId(), entity.getSensorType());
+            if(sensorThresholdHistory!=null) {
+                Long currentThresholdId = sensorThresholdHistory.getId();
+                entity.setCurrentThresholdId(currentThresholdId);
+            }
+            log.info("Threshold Recommend entity made successfully: {}-{}", entity.getZoneId(), entity.getSensorType());
+            sensorThresholdRecommendationRepository.save(entity);
+            log.info("Threshold Recommend entity saved successfully: {}-{}", entity.getZoneId(), entity.getSensorType());
         }
-        Set<String> zoneSet = Arrays.stream(userInfo.getScope().split(","))
-                .map(String::trim)
-                .collect(Collectors.toSet());
-        return zoneSet.contains(zoneId);
     }
+
+//    // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
+//    public Page<SensorThresholdRecommendation> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
+//
+//    }
+
+    // 🖥️ AI 추천된 센서 임계치 목록 적용 (Update)
+
+
+    // 관리자 권한 확인 메소드 (ROOT || ADMIN)
+    public Boolean isAdmin(UserCacheDto userInfo) {
+        return userInfo.getRole().equals("ROOT") || userInfo.getRole().equals("ADMIN");
+    }
+
+    // 관리자 권한 및 구역 권한 확인 메소드 (Root || Admin has Scope Access)
+    public Boolean hasAccess(UserCacheDto userInfo, String zoneId) {
+        boolean hasScopeAccess = Arrays.asList(userInfo.getScope().split(",")).contains(zoneId);
+        return userInfo.getRole().equals("ROOT") || userInfo.getRole().equals("ADMIN") && hasScopeAccess;
+    }
+
+//    // 권한 확인 메소드 (User's Scope 내부 Sensor's ZoneId 포함 여부 확인)
+//    public Boolean isZoneInUserScope(UserCacheDto userInfo, String zoneId) {
+//        if(zoneId == null) {
+//            return true;
+//        }
+//        Set<String> zoneSet = Arrays.stream(userInfo.getScope().split(","))
+//                .map(String::trim)
+//                .collect(Collectors.toSet());
+//        return zoneSet.contains(zoneId);
+//    }
 
     // SensorThreshold(ENTITY) -> SensorThresholdResponseDto(DTO)
     public SensorThresholdResponseDto fromEntityToDTO(SensorThreshold threshold) {
