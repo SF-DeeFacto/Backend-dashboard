@@ -133,10 +133,24 @@ public class SensorSettingService {
         }
     }
 
-//    // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
-//    public Page<SensorThresholdRecommendation> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
-//
-//    }
+    // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
+    public Page<SensorThresholdRecommendation> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
+
+        // 관리자 권한 확인 (ROOT || ADMIN)
+        if(!isAdmin(userInfo)) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "You are not authorized to read sensor threshold information");
+        }
+
+        // 셉서 목록 DB 조회
+        List<SensorThresholdRecommendation> recommends = sensorThresholdRecommendationRepository.findAllByUserScope(userInfo.getScope(), sensorType, zoneId);
+
+        // TODO: DTO 변환 (projections(repository 쿼리 결과 타입) -> SensorResponseDto)
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), recommends.size());
+        List<SensorThresholdRecommendation> content = recommends.subList(start, end);
+
+        return new PageImpl<>(content, pageable, recommends.size());
+    }
 
     // 🖥️ AI 추천된 센서 임계치 목록 적용 (Update)
 
