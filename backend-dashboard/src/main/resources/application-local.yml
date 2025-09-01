@@ -33,9 +33,12 @@ spring:
 #    password: ${REDIS_PASSWORD:StrongPassword22!}
 
   api:
+    url: https://api.openweathermap.org/data/2.5/weather
     weather-api-key: ${WEATHER_API_KEY}
+    lat: 37.55893664
+    lon: 126.9987376
 
-aws:
+  aws:
   credentials:
     access-key: ${AWS_ACCESS_KEY:test}
     secret-key: ${AWS_SECRET_KEY:test}
@@ -44,8 +47,8 @@ aws:
     host: ${AWS_SQS_QUEUE_URL:http://localhost:9200}
   # local opensearch 이용 시, 하단 host, username, password 사용
   #    host: https://localhost:9200
-#    username: admin
-#    password: StrongPassword22!
+  #    username: admin
+  #    password: StrongPassword22!
 
 
 

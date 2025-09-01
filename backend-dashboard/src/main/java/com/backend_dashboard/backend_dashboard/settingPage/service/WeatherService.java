@@ -6,8 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.client.RestTemplate;
@@ -18,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@EnableScheduling
+
 @RequiredArgsConstructor
 public class WeatherService {
 
@@ -26,20 +24,22 @@ public class WeatherService {
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
 
+    @Value("${spring.api.url}")
+    private String weatherUrl;
+
     @Value("${spring.api.weather-api-key}")
     private String weatherApiKey;  // 필드 주입
 
+    @Value("${spring.api.lat}")
+    private  String lat;
 
-    // 1시간 단위로 날씨 호출 스케쥴러 실행
-    @Scheduled(cron = "0 0 * * * *")
-    public void updateWeatherCache() {
-        fetchAndCacheWeather(); // API 호출 → Redis 저장
-    }
+    @Value("${spring.api.lon}")
+    private  String lon;
 
     // 날씨 API 호출
     public Map<String, Object> fetchAndCacheWeather() {
         // 1. 외부 API 호출
-        String url = "https://api.openweathermap.org/data/2.5/weather?lat=37.55893664&lon=126.9987376&appid=" + weatherApiKey;
+        String url = String.format("%s?lat=%s&lon=%s&appid=%s", weatherUrl, lat, lon, weatherApiKey);
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
         if (response != null) {
