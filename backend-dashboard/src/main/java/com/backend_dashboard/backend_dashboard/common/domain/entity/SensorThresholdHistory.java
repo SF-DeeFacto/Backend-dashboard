@@ -1,10 +1,7 @@
 package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +9,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor   // JPA 필수
+@AllArgsConstructor
 @Table(name = "sensor_threshold_history")
 public class SensorThresholdHistory {
 
