@@ -1,15 +1,15 @@
 package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor   // JPA 필수
+@AllArgsConstructor
 @Table(
         name = "sensor_threshold",
         uniqueConstraints = {

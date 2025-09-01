@@ -1,9 +1,10 @@
 package com.backend_dashboard.backend_dashboard.settingPage.controller;
 
 import com.backend_dashboard.backend_dashboard.common.domain.dto.ApiResponseDto;
-import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorResponseDto;
-import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorThresholdResponseDto;
-import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorThresholdUpdateRequestDto;
+import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdRecommendation;
+import com.backend_dashboard.backend_dashboard.common.exception.CustomException;
+import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
+import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.*;
 import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
 import com.backend_dashboard.backend_dashboard.settingPage.service.SensorSettingService;
 import com.backend_dashboard.backend_dashboard.redis.service.UserRedisService;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -58,8 +60,34 @@ public class SettingController {
             @RequestBody SensorThresholdUpdateRequestDto request
             ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        SensorThresholdResponseDto updatedThreshold = sensorSettingService.updateSensorThreshold(request, userInfo);
+        SensorThresholdResponseDto updatedThreshold = sensorSettingService.updateSensorThreshold(userInfo, request);
         return ApiResponseDto.createOk(updatedThreshold);
+    }
+
+    // AI 추천된 센서 임계치 목록 조회 (Read)
+    @GetMapping("/sensor/threshold/recommend")
+    public ApiResponseDto<Page<SensorThresholdRecommendationDto>> readSensorThresholdRecommendation(
+            @RequestHeader("X-Employee-Id") String employeeId,
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(required = false) String sensorType,
+            @RequestParam(required = false) String zoneId,
+            @PageableDefault(page = 0, size = 10) Pageable pageable
+    ) {
+        UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
+        Page<SensorThresholdRecommendationDto> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, pageable);
+        return ApiResponseDto.createOk(response);
+    }
+
+    // AI 추천된 센서 임계치 목록 적용 (Update: 승인 버튼)
+    @PostMapping("/sensor/threshold/recommend/update/{recommendId}")
+    public ApiResponseDto<SensorThresholdRecommendationUpdateDto> updateSensorThresholdRecommendation(
+            @RequestHeader("X-Employee-Id") String employeeId,
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable(required = true) Long recommendId
+    ) {
+        UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
+        SensorThresholdRecommendationUpdateDto result = sensorSettingService.updateSensorThresholdRecommendation(userInfo, recommendId);
+        return ApiResponseDto.createOk(result);
     }
 
 }
