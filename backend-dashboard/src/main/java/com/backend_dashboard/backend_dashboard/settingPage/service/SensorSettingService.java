@@ -1,6 +1,5 @@
 package com.backend_dashboard.backend_dashboard.settingPage.service;
 
-import com.backend_dashboard.backend_dashboard.common.domain.dto.ApiResponseDto;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdHistory;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdRecommendation;
@@ -134,7 +133,7 @@ public class SensorSettingService {
     }
 
     // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
-    public Page<SensorThresholdRecommendation> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
+    public PageImpl<SensorThresholdRecommendationDto> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
 
         // 관리자 권한 확인 (ROOT || ADMIN)
         if(!isAdmin(userInfo)) {
@@ -144,16 +143,48 @@ public class SensorSettingService {
         // 셉서 목록 DB 조회
         List<SensorThresholdRecommendation> recommends = sensorThresholdRecommendationRepository.findAllByUserScope(userInfo.getScope(), sensorType, zoneId);
 
-        // TODO: DTO 변환 (projections(repository 쿼리 결과 타입) -> SensorResponseDto)
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), recommends.size());
-        List<SensorThresholdRecommendation> content = recommends.subList(start, end);
+        List<SensorThresholdRecommendation> pageSizeRecommends = recommends.subList(start, end);
+        List<SensorThresholdRecommendationDto> response = new ArrayList<>();
 
-        return new PageImpl<>(content, pageable, recommends.size());
+        for(SensorThresholdRecommendation recommend: pageSizeRecommends) {
+            SensorThresholdRecommendationDto dto
+                    = SensorThresholdRecommendationDto
+                    .builder()
+                    .id(recommend.getId())
+                    .zoneId(recommend.getZoneId())
+                    .sensorType(recommend.getSensorType())
+                    .warningLow(recommend.getWarningLow())
+                    .warningHigh(recommend.getWarningHigh())
+                    .alertLow(recommend.getAlertLow())
+                    .alertHigh(recommend.getAlertHigh())
+                    .recommendedAt(recommend.getRecommendedAt())
+                    .appliedStatus(recommend.getAppliedStatus())
+                    .appliedAt(recommend.getAppliedAt())
+                    .build();
+
+            if (recommend.getCurrentThresholdId() != null) {
+                dto.setCurrentThresholdId(recommend.getCurrentThresholdId());
+                Long currentThresholdId = recommend.getCurrentThresholdId();
+                Optional<SensorThresholdHistory> currentThreshold = sensorThresholdHistoryRepository.findById(currentThresholdId);
+                currentThreshold.ifPresent(threshold -> {
+                    // threshold가 존재할 때만 실행됨
+                    dto.setCurrentWarningLow(threshold.getWarningLow());
+                    dto.setCurrentWarningHigh(threshold.getWarningHigh());
+                    dto.setCurrentAlertLow(threshold.getAlertLow());
+                    dto.setCurrentAlertHigh(threshold.getAlertHigh());
+                });
+            }
+            response.add(dto);
+        }
+
+        return new PageImpl<>(response, pageable, response.size());
     }
 
     // 🖥️ AI 추천된 센서 임계치 목록 적용 (Update)
 
+    //==================== <부가 기능 메소드> ====================
 
     // 관리자 권한 확인 메소드 (ROOT || ADMIN)
     public Boolean isAdmin(UserCacheDto userInfo) {
@@ -165,17 +196,6 @@ public class SensorSettingService {
         boolean hasScopeAccess = Arrays.asList(userInfo.getScope().split(",")).contains(zoneId);
         return userInfo.getRole().equals("ROOT") || userInfo.getRole().equals("ADMIN") && hasScopeAccess;
     }
-
-//    // 권한 확인 메소드 (User's Scope 내부 Sensor's ZoneId 포함 여부 확인)
-//    public Boolean isZoneInUserScope(UserCacheDto userInfo, String zoneId) {
-//        if(zoneId == null) {
-//            return true;
-//        }
-//        Set<String> zoneSet = Arrays.stream(userInfo.getScope().split(","))
-//                .map(String::trim)
-//                .collect(Collectors.toSet());
-//        return zoneSet.contains(zoneId);
-//    }
 
     // SensorThreshold(ENTITY) -> SensorThresholdResponseDto(DTO)
     public SensorThresholdResponseDto fromEntityToDTO(SensorThreshold threshold) {

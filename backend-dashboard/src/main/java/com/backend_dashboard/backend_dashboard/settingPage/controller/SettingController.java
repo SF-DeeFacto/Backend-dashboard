@@ -5,6 +5,7 @@ import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresh
 import com.backend_dashboard.backend_dashboard.common.exception.CustomException;
 import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorResponseDto;
+import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorThresholdRecommendationDto;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorThresholdResponseDto;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorThresholdUpdateRequestDto;
 import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
@@ -69,7 +70,7 @@ public class SettingController {
     // AI 추천된 센서 임계치 목록 조회 (Read)
     // TODO: 응답 DTO화 필요
     @GetMapping("/sensor/threshold/recommend")
-    public ApiResponseDto<Page<SensorThresholdRecommendation>> readSensorThresholdRecommendation(
+    public ApiResponseDto<Page<SensorThresholdRecommendationDto>> readSensorThresholdRecommendation(
             @RequestHeader("X-Employee-Id") String employeeId,
             @RequestHeader("X-User-Id") Long userId,
             @RequestParam(required = false) String sensorType,
@@ -77,7 +78,7 @@ public class SettingController {
             @PageableDefault(page = 0, size = 10) Pageable pageable
     ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        Page<SensorThresholdRecommendation> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, pageable);
+        Page<SensorThresholdRecommendationDto> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, pageable);
         return ApiResponseDto.createOk(response);
     }
 
