@@ -20,12 +20,12 @@ public class OpenSearchConfig {
     @Value("${aws.opensearch.host}")
     private String host;
 
-//     🔥 AWS 사용 시 주석 처리 필요
-//    @Value("${aws.opensearch.username}")
+//    // 🔥 AWS 사용 시 주석 처리 필요
+//    @Value("${opensearch.username}")
 //    private String username;
 //
 //    // 🔥 AWS 사용 시 주석 처리 필요
-//    @Value("${aws.opensearch.password}")
+//    @Value("${opensearch.password}")
 //    private String password;
 
     @Bean
