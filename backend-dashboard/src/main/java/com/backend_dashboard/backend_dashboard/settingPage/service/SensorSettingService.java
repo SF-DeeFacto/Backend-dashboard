@@ -188,7 +188,7 @@ public class SensorSettingService {
 
         // request에 포함된 recommendId로 "target 임계치 추천" row 추출
         SensorThresholdRecommendation target = sensorThresholdRecommendationRepository.findById(recommendId)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT));
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT, "Wrong 임계치 추천 Id"));
 
         // 관리자 권한 확인 (ROOT || ADMIN) && 수정 권한 확인
         if(!isAdmin(userInfo) || !hasAccess(userInfo, target.getZoneId())) {
@@ -222,7 +222,10 @@ public class SensorSettingService {
                 .build();
     }
 
-    //==================== <부가 기능 메소드> ====================
+    //====================================================================================================================================
+    //========================================================= <부가 기능 메소드> =========================================================
+    //====================================================================================================================================
+
 
     // 관리자 권한 확인 메소드 (ROOT || ADMIN)
     public Boolean isAdmin(UserCacheDto userInfo) {
