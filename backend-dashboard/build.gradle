@@ -45,6 +45,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // Validation - 요청 데이터 유효성 검증
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 //    implementation 'org.springframework.boot:spring-boot-starter-security'
 

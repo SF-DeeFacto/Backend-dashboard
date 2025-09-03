@@ -16,6 +16,6 @@ public class WeatherController {
     @GetMapping(value = "/home/weather")
     public ApiResponseDto<Map<String, Object>> getWeatherData() {
         Map<String, Object> weatherData = weatherService.getWeatherData();
-        return ApiResponseDto.createOk(weatherData);
+        return ApiResponseDto.createOk(weatherData, "날씨 조회 성공");
     }
 }

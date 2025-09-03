@@ -49,7 +49,7 @@ public class ZonePageController {
                                                 log.error("스트림 처리 중 오류 발생", e);
                                                 return Mono.just(List.of());
                                             })
-                                            .map(ApiResponseDto::createOk);
+                                            .map(data -> ApiResponseDto.createOk(data, "Zone Page: Red, Yellow, Green Logic Success"));
                                 });
                     } else {
                         return Flux.error(new CustomException(ErrorCode.UNAUTHORIZED));
