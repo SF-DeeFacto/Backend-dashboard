@@ -14,11 +14,11 @@ import com.backend_dashboard.backend_dashboard.remote.dto.RecommendThresholdMess
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.cluster.ClusterState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,6 +34,7 @@ public class SensorSettingService {
     private final SensorThresholdRecommendationRepository sensorThresholdRecommendationRepository;
 
     // 🖥️ 센서 목록 조회
+    @Transactional(readOnly = true)
     public Page<SensorResponseDto> getSensorList(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
 
         // 관리자 권한 확인 (ROOT || ADMIN)
@@ -62,6 +63,7 @@ public class SensorSettingService {
     }
 
     // 🖥️ 센서 임계치 조회
+    @Transactional(readOnly = true)
     public List<SensorThresholdResponseDto> getSensorThresholdList(UserCacheDto userInfo) {
 
         // 관리자 권한 확인 (ROOT || ADMIN)
@@ -79,6 +81,7 @@ public class SensorSettingService {
     }
 
     // 🖥️ 센서 임계치 수정
+    @Transactional
     public SensorThresholdResponseDto updateSensorThreshold(UserCacheDto userInfo, SensorThresholdUpdateRequestDto request) {
 
         // 관리자 권한 확인 (ROOT || ADMIN) && 수정 권한 확인
@@ -110,6 +113,7 @@ public class SensorSettingService {
     }
 
     // 🖥️ AI 추천된 센서 임계치 목록 저장 (Create)
+    @Transactional
     public void saveSensorThresholdRecommendation(RecommendThresholdMessage recommendThresholdMessage) {
         // Kafka Response 파싱
         String zoneId = recommendThresholdMessage.getZoneId();
@@ -134,6 +138,7 @@ public class SensorSettingService {
     }
 
     // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
+    @Transactional(readOnly = true)
     public PageImpl<SensorThresholdRecommendationDto> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
 
         // 관리자 권한 확인 (ROOT || ADMIN)
@@ -184,6 +189,7 @@ public class SensorSettingService {
     }
 
     // 🖥️ AI 추천된 센서 임계치 목록 적용 (Update: 추천 임계치 적용 여부, 적용 일시)
+    @Transactional
     public SensorThresholdRecommendationUpdateDto updateSensorThresholdRecommendation(UserCacheDto userInfo, Long recommendId) {
 
         // request에 포함된 recommendId로 "target 임계치 추천" row 추출
