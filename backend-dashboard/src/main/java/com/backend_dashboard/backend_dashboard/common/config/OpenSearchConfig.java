@@ -1,7 +1,5 @@
 package com.backend_dashboard.backend_dashboard.common.config;
 
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;

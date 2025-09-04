@@ -1,9 +1,5 @@
 package com.backend_dashboard.backend_dashboard.settingPage.domain.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import lombok.*;
 
 import java.time.LocalDateTime;

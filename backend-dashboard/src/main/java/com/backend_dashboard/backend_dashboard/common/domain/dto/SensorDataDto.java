@@ -4,5 +4,5 @@ public interface SensorDataDto {
     String getSensorId();
     String getSensorType();
     String getTimestamp();
-    public String getZoneId();
+    String getZoneId();
 }
