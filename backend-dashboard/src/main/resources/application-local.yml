@@ -55,8 +55,8 @@ spring:
   api:
     url: https://api.openweathermap.org/data/2.5/weather
     weather-api-key: ${WEATHER_API_KEY}
-    lat: 37.55893664
-    lon: 126.9987376
+    lat: ${LAT:37.55893664}
+    lon: ${LON:126.9987376}
 
   aws:
   credentials:
