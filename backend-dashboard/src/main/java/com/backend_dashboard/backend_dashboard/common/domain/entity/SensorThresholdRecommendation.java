@@ -1,6 +1,5 @@
 package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import jakarta.persistence.*;
 import lombok.*;
 

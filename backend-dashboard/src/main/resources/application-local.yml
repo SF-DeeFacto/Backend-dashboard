@@ -64,7 +64,7 @@ spring:
     secret-key: ${AWS_SECRET_KEY:test}
   region: ${AWS_REGION:ap-northeast-2}
   opensearch:
-    host: ${AWS_SQS_QUEUE_URL:http://localhost:9200}
+    host: ${http://localhost:9200}
   # local opensearch 이용 시, 하단 host, username, password 사용
   #    host: https://localhost:9200
   #    username: admin

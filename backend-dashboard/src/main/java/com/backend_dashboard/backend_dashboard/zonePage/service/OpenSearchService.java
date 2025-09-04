@@ -25,7 +25,6 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

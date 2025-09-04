@@ -1,7 +1,6 @@
 package com.backend_dashboard.backend_dashboard.common.domain.repository;
 
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
-import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.SensorResponseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
