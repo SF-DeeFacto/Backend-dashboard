@@ -5,15 +5,14 @@ import com.backend_dashboard.backend_dashboard.common.domain.dto.GenericSensorDa
 import com.backend_dashboard.backend_dashboard.common.domain.dto.ParticleSensorDataDto;
 import com.backend_dashboard.backend_dashboard.common.domain.dto.SensorDataDto;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
+import lombok.RequiredArgsConstructor;
+import org.opensearch.client.json.JsonData;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.FieldValue;
+import org.opensearch.client.opensearch._types.SortOrder;
+import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Flux;
@@ -21,9 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,13 +30,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OpenSearchService {
-    private final RestHighLevelClient client;
+    private final OpenSearchClient client;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    public OpenSearchService(RestHighLevelClient client) {
-        this.client = client;
-    }
 
     // zonePageService 에서 호출하는 함수
     public Mono<List<SensorDataDto>> getLatestSensorData(Instant fromTime, String zoneId) {
@@ -87,48 +81,56 @@ public class OpenSearchService {
 
     // 인덱스 5개 && 인덱스 존재하지 않을 경우에도 정상 동작
     private Flux<SensorDataDto> searchFromIndexIfExists(String index, Instant fromTime, String zoneId) {
-        log.info("searchFromIndexIfExists 메서드 호출: index={}, fromTime={}, zoneId={}",index, fromTime, zoneId);
+        log.info("searchFromIndexIfExists 호출: index={}, fromTime={}, zoneId={}", index, fromTime, zoneId);
+
         return Mono.fromCallable(() -> {
                     // 인덱스 존재 확인
-                    GetIndexRequest getIndexRequest = new GetIndexRequest(index);
-                    boolean exists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
-                    if (!exists) {
+                    var existsResponse = client.indices().exists(e -> e.index(index));
+                    if (!existsResponse.value()) {
                         return Collections.<SensorDataDto>emptyList();
                     }
 
-                    // 인덱스가 존재하면 검색 실행
-                    SearchRequest request = new SearchRequest(index);
-                    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
-                            .must(QueryBuilders.rangeQuery("timestamp").gt(fromTime))
-                            .must(QueryBuilders.termQuery("zone_id.keyword", zoneId));
+                    // 검색 실행
+                    SearchResponse<JsonNode> response = client.search(s -> s
+                                    .index(index)
+                                    .query(q -> q.bool(b -> b
+                                            .must(m -> m.range(r -> r
+                                                    .field("timestamp")
+                                                    .gt(JsonData.of(fromTime.toString()))
+                                            ))
+                                            .must(m -> m.term(t -> t
+                                                    .field("zone_id.keyword")
+                                                    .value((FieldValue) JsonData.of(zoneId))
+                                            ))
+                                    ))
+                                    .sort(sort -> sort.field(f -> f
+                                            .field("timestamp")
+                                            .order(SortOrder.Asc)))
+                                    .size(60)
+                                    .source(src -> src.filter(f -> f.excludes("unit", "id"))),
+                            JsonNode.class
+                    );
 
-                    SearchSourceBuilder builder = new SearchSourceBuilder()
-                            .query(boolQuery)
-                            .fetchSource(null, new String[]{"unit", "id"})
-                            .sort("timestamp", SortOrder.ASC)
-                            .size(60);
-
-                    request.source(builder);
-
-                    var response = client.search(request, RequestOptions.DEFAULT);
-                    log.info("인덱스 {} 검색 결과: {}개", index, response.getHits().getHits().length);
+                    log.info("인덱스 {} 검색 결과: {}개", index, response.hits().hits().size());
 
                     List<SensorDataDto> result = new ArrayList<>();
-                    for (SearchHit hit : response.getHits()) {
+                    for (Hit<JsonNode> hit : response.hits().hits()) {
                         try {
-                            String json = hit.getSourceAsString();
-                            JsonNode node = objectMapper.readTree(json);
-                            String sensorType = node.get("sensor_type").asText();
+                            JsonNode node = hit.source();
+                            if (node == null) continue;
 
+                            String sensorType = node.get("sensor_type").asText();
                             SensorDataDto dto;
+
                             if ("particle".equals(sensorType)) {
                                 dto = objectMapper.treeToValue(node, ParticleSensorDataDto.class);
                             } else {
                                 dto = objectMapper.treeToValue(node, GenericSensorDataDto.class);
                             }
+
                             result.add(dto);
-                        } catch (IOException e) {
-                            log.error("DTO 변환 중 오류 발생, 소스 데이터: {}", hit.getSourceAsString(), e);
+                        } catch (Exception e) {
+                            log.error("DTO 변환 중 오류 발생, 소스 데이터: {}", hit.source(), e);
                             throw new RuntimeException("DTO 변환 오류", e);
                         }
                     }
@@ -136,7 +138,63 @@ public class OpenSearchService {
                 })
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
-                .onErrorResume(e -> Flux.empty());
+                .onErrorResume(e -> {
+                    log.error("OpenSearch 검색 실패", e);
+                    return Flux.empty();
+                });
     }
+
+//    private Flux<SensorDataDto> searchFromIndexIfExists(String index, Instant fromTime, String zoneId) {
+//        log.info("searchFromIndexIfExists 메서드 호출: index={}, fromTime={}, zoneId={}",index, fromTime, zoneId);
+//        return Mono.fromCallable(() -> {
+//                    // 인덱스 존재 확인
+//                    GetIndexRequest getIndexRequest = new GetIndexRequest(index);
+//                    boolean exists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
+//                    if (!exists) {
+//                        return Collections.<SensorDataDto>emptyList();
+//                    }
+//
+//                    // 인덱스가 존재하면 검색 실행
+//                    SearchRequest request = new SearchRequest(index);
+//                    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
+//                            .must(QueryBuilders.rangeQuery("timestamp").gt(fromTime))
+//                            .must(QueryBuilders.termQuery("zone_id.keyword", zoneId));
+//
+//                    SearchSourceBuilder builder = new SearchSourceBuilder()
+//                            .query(boolQuery)
+//                            .fetchSource(null, new String[]{"unit", "id"})
+//                            .sort("timestamp", SortOrder.ASC)
+//                            .size(60);
+//
+//                    request.source(builder);
+//
+//                    var response = client.search(request, RequestOptions.DEFAULT);
+//                    log.info("인덱스 {} 검색 결과: {}개", index, response.getHits().getHits().length);
+//
+//                    List<SensorDataDto> result = new ArrayList<>();
+//                    for (SearchHit hit : response.getHits()) {
+//                        try {
+//                            String json = hit.getSourceAsString();
+//                            JsonNode node = objectMapper.readTree(json);
+//                            String sensorType = node.get("sensor_type").asText();
+//
+//                            SensorDataDto dto;
+//                            if ("particle".equals(sensorType)) {
+//                                dto = objectMapper.treeToValue(node, ParticleSensorDataDto.class);
+//                            } else {
+//                                dto = objectMapper.treeToValue(node, GenericSensorDataDto.class);
+//                            }
+//                            result.add(dto);
+//                        } catch (IOException e) {
+//                            log.error("DTO 변환 중 오류 발생, 소스 데이터: {}", hit.getSourceAsString(), e);
+//                            throw new RuntimeException("DTO 변환 오류", e);
+//                        }
+//                    }
+//                    return result;
+//                })
+//                .subscribeOn(Schedulers.boundedElastic())
+//                .flatMapMany(Flux::fromIterable)
+//                .onErrorResume(e -> Flux.empty());
+//    }
 
 }
