@@ -65,6 +65,8 @@ aws:
   region: ${AWS_REGION:ap-northeast-2}
   opensearch:
     host: ${OPENSEARCH_HOST:localhost}
+    port: ${OPENSEARCH_PORT:9200}
+    scheme: ${OPENSEARCH_SCHEME:http}
     username: ${OPENSEARCH_USERNAME}
     password: ${OPENSEARCH_PASSWORD}
   # local opensearch 이용 시, 하단 host, username, password 사용

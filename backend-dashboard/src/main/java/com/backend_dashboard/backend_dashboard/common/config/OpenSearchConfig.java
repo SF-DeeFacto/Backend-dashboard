@@ -19,6 +19,12 @@ public class OpenSearchConfig {
     @Value("${aws.opensearch.host}")
     private String host;
 
+    @Value("${aws.opensearch.port}")
+    private int port;
+
+    @Value("${aws.opensearch.scheme}")
+    private String scheme;
+
     @Value("${aws.opensearch.username}")
     private String username;
 
@@ -29,12 +35,12 @@ public class OpenSearchConfig {
     public OpenSearchClient openSearchClient() {
         final BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
         credsProv.setCredentials(
-                new AuthScope(host, 9200),
+                AuthScope.ANY,
                 new UsernamePasswordCredentials(username, password)
         );
 
         RestClientBuilder builder = RestClient.builder(
-                        new org.apache.http.HttpHost(host, 9200, "http"))
+                        new org.apache.http.HttpHost(host, port, scheme))
                 .setHttpClientConfigCallback(httpClientBuilder ->
                         httpClientBuilder.setDefaultCredentialsProvider(credsProv));
 
