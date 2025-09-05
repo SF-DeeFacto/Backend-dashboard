@@ -58,15 +58,15 @@ spring:
     lat: ${LAT:37.55893664}
     lon: ${LON:126.9987376}
 
-  aws:
+aws:
   credentials:
     access-key: ${AWS_ACCESS_KEY:test}
     secret-key: ${AWS_SECRET_KEY:test}
   region: ${AWS_REGION:ap-northeast-2}
   opensearch:
-    host: ${OPENSEARCH_HOST:http://localhost}
-    username: ${OPENSEARCH_USERNAME:admin}
-    password: ${OPENSEARCH_PASSWORD:Deefacto6!}
+    host: ${OPENSEARCH_HOST:localhost}
+    username: ${OPENSEARCH_USERNAME}
+    password: ${OPENSEARCH_PASSWORD}
   # local opensearch 이용 시, 하단 host, username, password 사용
   #    host: https://localhost:9200
   #    username: admin
