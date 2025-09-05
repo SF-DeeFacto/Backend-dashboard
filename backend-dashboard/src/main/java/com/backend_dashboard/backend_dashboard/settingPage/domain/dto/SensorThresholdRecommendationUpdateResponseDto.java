@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-public class SensorThresholdRecommendationUpdateDto {
+public class SensorThresholdRecommendationUpdateResponseDto {
     private Long id;
     private Boolean appliedStatus;
     private LocalDateTime appliedAt;

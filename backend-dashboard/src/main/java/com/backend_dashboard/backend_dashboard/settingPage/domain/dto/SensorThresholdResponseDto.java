@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public class SensorThresholdResponseDto {
     private String zoneId;
     private String sensorType;
+    private String reasonTitle;
+    private String reasonContent;
     private Double warningLow;
     private Double warningHigh;
     private Double alertLow;

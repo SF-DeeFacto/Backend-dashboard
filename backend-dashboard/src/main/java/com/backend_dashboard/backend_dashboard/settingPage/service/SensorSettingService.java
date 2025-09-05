@@ -10,6 +10,7 @@ import com.backend_dashboard.backend_dashboard.common.domain.repository.SensorTh
 import com.backend_dashboard.backend_dashboard.common.exception.CustomException;
 import com.backend_dashboard.backend_dashboard.common.exception.ErrorCode;
 import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
+import com.backend_dashboard.backend_dashboard.remote.dto.RecommendThresholdDto;
 import com.backend_dashboard.backend_dashboard.remote.dto.RecommendThresholdMessage;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.*;
 import lombok.RequiredArgsConstructor;
@@ -117,11 +118,12 @@ public class SensorSettingService {
     public void saveSensorThresholdRecommendation(RecommendThresholdMessage recommendThresholdMessage) {
         // Kafka Response 파싱
         String zoneId = recommendThresholdMessage.getZoneId();
-        List<SensorThresholdUpdateRequestDto> recommendList = recommendThresholdMessage.getSensorThresholdUpdateRequestDto();
+        List<RecommendThresholdDto> recommendList = recommendThresholdMessage.getRecommendThresholdDto();
         LocalDateTime recommendAt = recommendThresholdMessage.getRecommendedAt();
+        log.info("zoneId: {}, recommendList: {}, recommendAt: {}", zoneId, recommendList.get(0).getSensorType(), recommendAt);
 
         // recommendList(SensorThresholdUpdateRequestDto) -> SensorThresholdRecommendation -> Save
-        for(SensorThresholdUpdateRequestDto dto: recommendList) {
+        for(RecommendThresholdDto dto: recommendList) {
             SensorThresholdRecommendation entity = dto.toThresholdRecommendationEntity();
             entity.setRecommendedAt(recommendAt);
             entity.setAppliedStatus(false);
@@ -139,7 +141,7 @@ public class SensorSettingService {
 
     // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
     @Transactional(readOnly = true)
-    public PageImpl<SensorThresholdRecommendationDto> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
+    public PageImpl<SensorThresholdRecommendationResponseDto> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
 
         // 관리자 권한 확인 (ROOT || ADMIN)
         if(!isAdmin(userInfo)) {
@@ -152,15 +154,17 @@ public class SensorSettingService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), recommends.size());
         List<SensorThresholdRecommendation> pageSizeRecommends = recommends.subList(start, end);
-        List<SensorThresholdRecommendationDto> response = new ArrayList<>();
+        List<SensorThresholdRecommendationResponseDto> response = new ArrayList<>();
 
         for(SensorThresholdRecommendation recommend: pageSizeRecommends) {
-            SensorThresholdRecommendationDto dto
-                    = SensorThresholdRecommendationDto
+            SensorThresholdRecommendationResponseDto dto
+                    = SensorThresholdRecommendationResponseDto
                     .builder()
                     .id(recommend.getId())
                     .zoneId(recommend.getZoneId())
                     .sensorType(recommend.getSensorType())
+                    .reasonTitle(recommend.getReasonTitle())
+                    .reasonContent(recommend.getReasonContent())
                     .warningLow(recommend.getWarningLow())
                     .warningHigh(recommend.getWarningHigh())
                     .alertLow(recommend.getAlertLow())
@@ -190,7 +194,7 @@ public class SensorSettingService {
 
     // 🖥️ AI 추천된 센서 임계치 목록 적용 (Update: 추천 임계치 적용 여부, 적용 일시)
     @Transactional
-    public SensorThresholdRecommendationUpdateDto updateSensorThresholdRecommendation(UserCacheDto userInfo, Long recommendId) {
+    public SensorThresholdRecommendationUpdateResponseDto updateSensorThresholdRecommendation(UserCacheDto userInfo, Long recommendId) {
 
         // request에 포함된 recommendId로 "target 임계치 추천" row 추출
         SensorThresholdRecommendation target = sensorThresholdRecommendationRepository.findById(recommendId)
@@ -221,7 +225,7 @@ public class SensorSettingService {
         SensorThresholdRecommendation updatedEntity =  sensorThresholdRecommendationRepository.save(target);
 
         // 반환값 DTO화
-        return SensorThresholdRecommendationUpdateDto.builder()
+        return SensorThresholdRecommendationUpdateResponseDto.builder()
                 .id(updatedEntity.getId())
                 .appliedStatus(updatedEntity.getAppliedStatus())
                 .appliedAt(updatedEntity.getAppliedAt())

@@ -63,7 +63,7 @@ public class SettingController {
 
     // AI 추천된 센서 임계치 목록 조회 (Read)
     @GetMapping("/sensor/threshold/recommend")
-    public ApiResponseDto<Page<SensorThresholdRecommendationDto>> readSensorThresholdRecommendation(
+    public ApiResponseDto<Page<SensorThresholdRecommendationResponseDto>> readSensorThresholdRecommendation(
             @RequestHeader("X-Employee-Id") String employeeId,
             @RequestHeader("X-User-Id") Long userId,
             @RequestParam(required = false) String sensorType,
@@ -71,19 +71,19 @@ public class SettingController {
             @PageableDefault(page = 0, size = 10) Pageable pageable
     ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        Page<SensorThresholdRecommendationDto> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, pageable);
+        Page<SensorThresholdRecommendationResponseDto> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, pageable);
         return ApiResponseDto.createOk(response, "AI 추천된 센서 임계치 목록 조회 성공");
     }
 
     // AI 추천된 센서 임계치 목록 적용 (Update: 승인 버튼)
     @PostMapping("/sensor/threshold/recommend/update/{recommendId}")
-    public ApiResponseDto<SensorThresholdRecommendationUpdateDto> updateSensorThresholdRecommendation(
+    public ApiResponseDto<SensorThresholdRecommendationUpdateResponseDto> updateSensorThresholdRecommendation(
             @RequestHeader("X-Employee-Id") String employeeId,
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable(required = true) Long recommendId
     ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        SensorThresholdRecommendationUpdateDto result = sensorSettingService.updateSensorThresholdRecommendation(userInfo, recommendId);
+        SensorThresholdRecommendationUpdateResponseDto result = sensorSettingService.updateSensorThresholdRecommendation(userInfo, recommendId);
         return ApiResponseDto.createOk(result, "AI 추천된 센서 임계치 목록 적용 성공 (승인 완료)");
     }
 

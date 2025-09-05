@@ -25,20 +25,23 @@ public class SensorThresholdRecommendation {
         @Column(name = "sensor_type", nullable = false)
         private String sensorType;
 
-        @Column(name = "warning_low", nullable = false)
+        @Column(name = "warning_low")
         private Double warningLow;
 
         @Column(name = "warning_high", nullable = false)
         private Double warningHigh;
 
-        @Column(name = "alert_low", nullable = false)
+        @Column(name = "alert_low")
         private Double alertLow;
 
         @Column(name = "alert_high", nullable = false)
         private Double alertHigh;
 
-//        @Column(name="recommend_reason", nullable = false)
-//        private String recommendReason;
+        @Column(name = "reason_title")
+        private String reasonTitle;
+
+        @Column(name = "reason_content")
+        private String reasonContent;
 
         @Column(name="recommended_at")
         private LocalDateTime recommendedAt;

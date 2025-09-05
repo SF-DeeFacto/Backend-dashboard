@@ -27,15 +27,4 @@ public class SensorThresholdUpdateRequestDto {
     private Double alertLow;
     @NotNull(message = "alertHigh is compulsory")
     private Double alertHigh;
-
-    public SensorThresholdRecommendation toThresholdRecommendationEntity() {
-        return SensorThresholdRecommendation.builder()
-        .zoneId(this.zoneId)
-        .sensorType(this.sensorType)
-        .warningHigh(this.warningHigh)
-        .warningLow(this.warningLow)
-        .alertHigh(this.alertHigh)
-        .alertLow(this.alertLow)
-        .build();
-    }
 }

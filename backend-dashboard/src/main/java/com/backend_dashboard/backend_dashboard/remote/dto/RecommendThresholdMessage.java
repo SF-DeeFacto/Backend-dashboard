@@ -14,9 +14,8 @@ public class RecommendThresholdMessage {
     @NotBlank(message = "zoneId is compulsory")
     private String zoneId;
 
-    @Valid
     @NotEmpty(message = "sensorThresholdUpdateRequestDto List is compulsory")
-    private List<SensorThresholdUpdateRequestDto> sensorThresholdUpdateRequestDto;  // 센서 타입별 임계치 리스트
+    private List<RecommendThresholdDto> recommendThresholdDto;  // 센서 타입별 임계치 리스트
 
     @NotNull(message = "recommendedAt is compulsory")
     private LocalDateTime recommendedAt;

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @Builder
-public class SensorThresholdRecommendationDto {
+public class SensorThresholdRecommendationResponseDto {
 
     private Long id;
     private String zoneId;
@@ -17,7 +17,8 @@ public class SensorThresholdRecommendationDto {
     private Double warningHigh;
     private Double alertLow;
     private Double alertHigh;
-//        private String recommendReason;
+    private String reasonTitle;
+    private String reasonContent;
     private LocalDateTime recommendedAt;
     private Boolean appliedStatus;
     private LocalDateTime appliedAt;
