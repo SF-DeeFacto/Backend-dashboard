@@ -100,7 +100,7 @@ public class OpenSearchService {
                                             ))
                                             .must(m -> m.term(t -> t
                                                     .field("zone_id.keyword")
-                                                    .value((FieldValue) JsonData.of(zoneId))
+                                                    .value(FieldValue.of(zoneId))
                                             ))
                                     ))
                                     .sort(sort -> sort.field(f -> f
@@ -143,58 +143,5 @@ public class OpenSearchService {
                     return Flux.empty();
                 });
     }
-
-//    private Flux<SensorDataDto> searchFromIndexIfExists(String index, Instant fromTime, String zoneId) {
-//        log.info("searchFromIndexIfExists 메서드 호출: index={}, fromTime={}, zoneId={}",index, fromTime, zoneId);
-//        return Mono.fromCallable(() -> {
-//                    // 인덱스 존재 확인
-//                    GetIndexRequest getIndexRequest = new GetIndexRequest(index);
-//                    boolean exists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
-//                    if (!exists) {
-//                        return Collections.<SensorDataDto>emptyList();
-//                    }
-//
-//                    // 인덱스가 존재하면 검색 실행
-//                    SearchRequest request = new SearchRequest(index);
-//                    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
-//                            .must(QueryBuilders.rangeQuery("timestamp").gt(fromTime))
-//                            .must(QueryBuilders.termQuery("zone_id.keyword", zoneId));
-//
-//                    SearchSourceBuilder builder = new SearchSourceBuilder()
-//                            .query(boolQuery)
-//                            .fetchSource(null, new String[]{"unit", "id"})
-//                            .sort("timestamp", SortOrder.ASC)
-//                            .size(60);
-//
-//                    request.source(builder);
-//
-//                    var response = client.search(request, RequestOptions.DEFAULT);
-//                    log.info("인덱스 {} 검색 결과: {}개", index, response.getHits().getHits().length);
-//
-//                    List<SensorDataDto> result = new ArrayList<>();
-//                    for (SearchHit hit : response.getHits()) {
-//                        try {
-//                            String json = hit.getSourceAsString();
-//                            JsonNode node = objectMapper.readTree(json);
-//                            String sensorType = node.get("sensor_type").asText();
-//
-//                            SensorDataDto dto;
-//                            if ("particle".equals(sensorType)) {
-//                                dto = objectMapper.treeToValue(node, ParticleSensorDataDto.class);
-//                            } else {
-//                                dto = objectMapper.treeToValue(node, GenericSensorDataDto.class);
-//                            }
-//                            result.add(dto);
-//                        } catch (IOException e) {
-//                            log.error("DTO 변환 중 오류 발생, 소스 데이터: {}", hit.getSourceAsString(), e);
-//                            throw new RuntimeException("DTO 변환 오류", e);
-//                        }
-//                    }
-//                    return result;
-//                })
-//                .subscribeOn(Schedulers.boundedElastic())
-//                .flatMapMany(Flux::fromIterable)
-//                .onErrorResume(e -> Flux.empty());
-//    }
 
 }
