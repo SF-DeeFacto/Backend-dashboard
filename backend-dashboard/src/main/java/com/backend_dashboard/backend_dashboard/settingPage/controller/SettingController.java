@@ -76,15 +76,14 @@ public class SettingController {
     }
 
     // AI 추천된 센서 임계치 목록 적용 (Update: 승인 버튼)
-    @PostMapping("/sensor/threshold/recommend/update/{recommendId}")
-    public ApiResponseDto<SensorThresholdRecommendationUpdateResponseDto> updateSensorThresholdRecommendation(
+    @PostMapping("/sensor/threshold/recommend/update")
+    public ApiResponseDto<SensorThresholdRecommendationUpdateResponseDto> applySensorThresholdRecommendation(
             @RequestHeader("X-Employee-Id") String employeeId,
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable(required = true) Long recommendId
+            @RequestBody SensorThresholdRecommendationUpdateRequestDto requestDto
     ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        SensorThresholdRecommendationUpdateResponseDto result = sensorSettingService.updateSensorThresholdRecommendation(userInfo, recommendId);
-        return ApiResponseDto.createOk(result, "AI 추천된 센서 임계치 목록 적용 성공 (승인 완료)");
+        SensorThresholdRecommendationUpdateResponseDto result = sensorSettingService.updateSensorThresholdRecommendation(userInfo, requestDto);
+        return ApiResponseDto.createOk(result, "AI 추천된 센서 임계치 상태 업데이트 완료 (PENDING||APPROVED||REJECTED)");
     }
-
 }

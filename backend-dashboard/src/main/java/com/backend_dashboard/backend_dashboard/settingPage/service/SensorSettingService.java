@@ -1,5 +1,6 @@
 package com.backend_dashboard.backend_dashboard.settingPage.service;
 
+import com.backend_dashboard.backend_dashboard.common.domain.AppliedStatus;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThreshold;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdHistory;
 import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresholdRecommendation;
@@ -126,7 +127,7 @@ public class SensorSettingService {
         for(RecommendThresholdDto dto: recommendList) {
             SensorThresholdRecommendation entity = dto.toThresholdRecommendationEntity();
             entity.setRecommendedAt(recommendAt);
-            entity.setAppliedStatus(false);
+            entity.setAppliedStatus(AppliedStatus.PENDING);
             // 추천받은 일시 기준 적용되고 있는 임계치
             SensorThresholdHistory sensorThresholdHistory = sensorThresholdHistoryRepository.findTopByZoneIdAndSensorTypeOrderByUpdatedAtDesc(entity.getZoneId(), entity.getSensorType());
             if(sensorThresholdHistory!=null) {
@@ -194,10 +195,9 @@ public class SensorSettingService {
 
     // 🖥️ AI 추천된 센서 임계치 목록 적용 (Update: 추천 임계치 적용 여부, 적용 일시)
     @Transactional
-    public SensorThresholdRecommendationUpdateResponseDto updateSensorThresholdRecommendation(UserCacheDto userInfo, Long recommendId) {
-
+    public SensorThresholdRecommendationUpdateResponseDto updateSensorThresholdRecommendation(UserCacheDto userInfo, SensorThresholdRecommendationUpdateRequestDto requestDto) {
         // request에 포함된 recommendId로 "target 임계치 추천" row 추출
-        SensorThresholdRecommendation target = sensorThresholdRecommendationRepository.findById(recommendId)
+        SensorThresholdRecommendation target = sensorThresholdRecommendationRepository.findById(requestDto.getRecommendId())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT, "Wrong 임계치 추천 Id"));
 
         // 관리자 권한 확인 (ROOT || ADMIN) && 수정 권한 확인
@@ -205,23 +205,25 @@ public class SensorSettingService {
             throw new CustomException(ErrorCode.FORBIDDEN, "You are not authorized to change sensor threshold information");
         }
 
-        // 임계치 추천 적용하기 (SensorThreshold Table 업데이트)
-        SensorThresholdUpdateRequestDto thresholdUpdateRequestDto = SensorThresholdUpdateRequestDto.builder()
-                .zoneId(target.getZoneId())
-                .sensorType(target.getSensorType())
-                .warningLow(target.getWarningLow())
-                .warningHigh(target.getWarningHigh())
-                .alertLow(target.getAlertLow())
-                .alertHigh(target.getAlertHigh())
-                .build();
-        SensorThresholdResponseDto thresholdUpdateResponseDto = updateSensorThreshold(userInfo, thresholdUpdateRequestDto);
-        if(thresholdUpdateResponseDto == null) {
-            throw new CustomException(ErrorCode.INTERNAL_ERROR, "임계치 적용 과정에 오류가 발생했습니다.");
+        if(requestDto.getAppliedStatus().equals(AppliedStatus.APPROVED)) {
+            // 임계치 추천 적용하기 (SensorThreshold Table 업데이트)
+            SensorThresholdUpdateRequestDto thresholdUpdateRequestDto = SensorThresholdUpdateRequestDto.builder()
+                    .zoneId(target.getZoneId())
+                    .sensorType(target.getSensorType())
+                    .warningLow(target.getWarningLow())
+                    .warningHigh(target.getWarningHigh())
+                    .alertLow(target.getAlertLow())
+                    .alertHigh(target.getAlertHigh())
+                    .build();
+            SensorThresholdResponseDto thresholdUpdateResponseDto = updateSensorThreshold(userInfo, thresholdUpdateRequestDto);
+            if(thresholdUpdateResponseDto == null) {
+                throw new CustomException(ErrorCode.INTERNAL_ERROR, "임계치 적용 과정에 오류가 발생했습니다.");
+            }
+            target.setAppliedAt(LocalDateTime.now());
         }
 
         // 임계치 추천 상태 업데이트 (SensorThresholdRecommendation Table: appliedStatus, appliedAt)
-        target.setAppliedStatus(true);
-        target.setAppliedAt(LocalDateTime.now());
+        target.setAppliedStatus(requestDto.getAppliedStatus());
         SensorThresholdRecommendation updatedEntity =  sensorThresholdRecommendationRepository.save(target);
 
         // 반환값 DTO화

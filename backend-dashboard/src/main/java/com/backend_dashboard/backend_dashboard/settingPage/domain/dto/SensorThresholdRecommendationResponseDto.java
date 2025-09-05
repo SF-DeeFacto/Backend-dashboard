@@ -1,5 +1,6 @@
 package com.backend_dashboard.backend_dashboard.settingPage.domain.dto;
 
+import com.backend_dashboard.backend_dashboard.common.domain.AppliedStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ public class SensorThresholdRecommendationResponseDto {
     private String reasonTitle;
     private String reasonContent;
     private LocalDateTime recommendedAt;
-    private Boolean appliedStatus;
+    private AppliedStatus appliedStatus;
     private LocalDateTime appliedAt;
 
     // 추천받은 당시 사용 중인 Threshold 정보

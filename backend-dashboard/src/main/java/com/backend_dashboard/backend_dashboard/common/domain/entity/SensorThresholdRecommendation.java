@@ -1,5 +1,6 @@
 package com.backend_dashboard.backend_dashboard.common.domain.entity;
 
+import com.backend_dashboard.backend_dashboard.common.domain.AppliedStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,7 +48,7 @@ public class SensorThresholdRecommendation {
         private LocalDateTime recommendedAt;
 
         @Column(name = "applied_status")
-        private Boolean appliedStatus;
+        private AppliedStatus appliedStatus = AppliedStatus.PENDING;
 
         @Column(name = "applied_at")
         private LocalDateTime appliedAt;

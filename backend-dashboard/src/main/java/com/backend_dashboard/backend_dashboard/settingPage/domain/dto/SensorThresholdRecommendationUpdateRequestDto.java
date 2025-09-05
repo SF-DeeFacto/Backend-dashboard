@@ -5,13 +5,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @Builder
-public class SensorThresholdRecommendationUpdateResponseDto {
-    private Long id;
+public class SensorThresholdRecommendationUpdateRequestDto {
+    private Long recommendId;
     private AppliedStatus appliedStatus;
-    private LocalDateTime appliedAt;
+
 }
