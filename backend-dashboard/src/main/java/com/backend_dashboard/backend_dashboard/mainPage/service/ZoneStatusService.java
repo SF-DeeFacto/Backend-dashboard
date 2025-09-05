@@ -10,21 +10,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
+import org.opensearch.client.json.JsonData;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.SortOrder;
+import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -36,7 +31,7 @@ import java.util.stream.Collectors;
 public class ZoneStatusService {
 
     private final SensorThresholdRepository thresholdRepository;
-    private final RestHighLevelClient client;
+    private final OpenSearchClient client;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Controller가 호출하는 메서드
@@ -97,35 +92,41 @@ public class ZoneStatusService {
     private Flux<SensorDataDto> searchFromIndexIfExists(String index, LocalDateTime fromTime) {
         return Mono.fromCallable(() -> {
                     // 인덱스 존재 확인
-                    GetIndexRequest getIndexRequest = new GetIndexRequest(index);
-                    boolean exists = client.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
-                    if (!exists) {
-                        // 인덱스 없으면 빈 결과 리턴
-                        log.info("인덱스 없음");
+                    var existsResponse = client.indices().exists(e -> e.index(index));
+                    if (!existsResponse.value()) {
+                        log.info("인덱스 없음: {}", index);
                         return Collections.<SensorDataDto>emptyList();
                     }
 
-                    // 인덱스가 존재하면 검색 실행
-                    // opensearch request 생성
-                    SearchRequest request = new SearchRequest(index);
-                    RangeQueryBuilder rangeQuery = QueryBuilders
-                            .rangeQuery("timestamp")
-                            .gt(fromTime.toInstant(ZoneOffset.UTC).toString());
+                    // 검색 실행
+                    String fromIso = fromTime.toInstant(ZoneOffset.UTC).toString();
 
-                    SearchSourceBuilder builder = new SearchSourceBuilder()
-                            .query(rangeQuery)
-                            .fetchSource(null, new String[]{"unit", "id"})
-                            .sort("timestamp", SortOrder.ASC)
-                            .size(100);
+                    SearchResponse<JsonNode> response = client.search(s -> s
+                                    .index(index)
+                                    .query(q -> q
+                                            .range(r -> r
+                                                    .field("timestamp")
+                                                    .gt(JsonData.of(fromIso))
+                                            )
+                                    )
+                                    .sort(sort -> sort
+                                            .field(f -> f
+                                                    .field("timestamp")
+                                                    .order(SortOrder.Asc)
+                                            )
+                                    )
+                                    .size(100)
+                                    // unit, id 필드 제외 (include = null, exclude 지정)
+                                    .source(src -> src.filter(f -> f.excludes("unit", "id"))),
+                            JsonNode.class
+                    );
 
-                    request.source(builder);
-
-                    var response = client.search(request, RequestOptions.DEFAULT);
                     List<SensorDataDto> result = new ArrayList<>();
-                    for (SearchHit hit : response.getHits()) {
+                    for (Hit<JsonNode> hit : response.hits().hits()) {
                         try {
-                            String json = hit.getSourceAsString();
-                            JsonNode node = objectMapper.readTree(json);
+                            JsonNode node = hit.source();
+                            if (node == null) continue;
+
                             String sensorType = node.get("sensor_type").asText();
 
                             SensorDataDto dto;
@@ -135,19 +136,18 @@ public class ZoneStatusService {
                                 dto = objectMapper.treeToValue(node, GenericSensorDataDto.class);
                             }
                             result.add(dto);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (Exception e) {
+                            log.error("JSON 파싱 오류", e);
                         }
                     }
                     return result;
                 })
-                // 탄력적으로 생성되는 스레드 풀 사용 (별도의 스레드 풀에서 실행)
-                // 백그라운드 스레드에서 실행
                 .subscribeOn(Schedulers.boundedElastic())
-                // 각 데이터 병렬처리
                 .flatMapMany(Flux::fromIterable)
-                // 에러나면 빈 Flux로 대체해서 병합 시 전체 중단 방지
-                .onErrorResume(e -> Flux.empty());
+                .onErrorResume(ex -> {
+                    log.error("OpenSearch 검색 오류", ex);
+                    return Flux.empty();
+                });
     }
 
     // Controller가 호출하는 메소드

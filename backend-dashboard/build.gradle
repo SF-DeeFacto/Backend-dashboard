@@ -28,12 +28,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    // OpenSearch High Level Client
-    implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.10.2'
 
-    // AWS SDK v2 (SigV4 인증)
-    implementation 'software.amazon.awssdk:auth:2.25.0'
-    implementation 'software.amazon.awssdk:regions:2.25.0'
+    // implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.10.2'
+    implementation 'org.opensearch.client:opensearch-rest-high-level-client:2.19.0'
+    implementation 'software.amazon.awssdk:auth:2.20.3'
+    implementation 'software.amazon.awssdk:regions:2.20.3'
+    implementation 'software.amazon.awssdk:core:2.20.3'
 
     // Jackson 등 JSON 처리
     implementation 'com.fasterxml.jackson.core:jackson-databind'

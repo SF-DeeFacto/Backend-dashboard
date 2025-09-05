@@ -64,7 +64,9 @@ spring:
     secret-key: ${AWS_SECRET_KEY:test}
   region: ${AWS_REGION:ap-northeast-2}
   opensearch:
-    host: ${http://localhost:9200}
+    host: ${OPENSEARCH_HOST:http://localhost}
+    username: ${OPENSEARCH_USERNAME:admin}
+    password: ${OPENSEARCH_PASSWORD:Deefacto6!}
   # local opensearch 이용 시, 하단 host, username, password 사용
   #    host: https://localhost:9200
   #    username: admin
