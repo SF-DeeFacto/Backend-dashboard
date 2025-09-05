@@ -142,15 +142,21 @@ public class SensorSettingService {
 
     // 🖥️ AI 추천된 센서 임계치 목록 조회 (Read)
     @Transactional(readOnly = true)
-    public PageImpl<SensorThresholdRecommendationResponseDto> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, Pageable pageable) {
+    public PageImpl<SensorThresholdRecommendationResponseDto> readSensorThresholdRecommendation(UserCacheDto userInfo, String sensorType, String zoneId, List<AppliedStatus> appliedStatus, Pageable pageable) {
 
         // 관리자 권한 확인 (ROOT || ADMIN)
         if(!isAdmin(userInfo)) {
             throw new CustomException(ErrorCode.FORBIDDEN, "You are not authorized to read sensor threshold information");
         }
 
+        if (appliedStatus == null || appliedStatus.isEmpty()) {
+            appliedStatus = Arrays.stream(AppliedStatus.values())
+                    .filter(s -> s != AppliedStatus.REJECTED)
+                    .toList();
+        }
+
         // 셉서 목록 DB 조회
-        List<SensorThresholdRecommendation> recommends = sensorThresholdRecommendationRepository.findAllByUserScope(userInfo.getScope(), sensorType, zoneId);
+        List<SensorThresholdRecommendation> recommends = sensorThresholdRecommendationRepository.findAllByUserScope(userInfo.getScope(), sensorType, zoneId, appliedStatus);
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), recommends.size());

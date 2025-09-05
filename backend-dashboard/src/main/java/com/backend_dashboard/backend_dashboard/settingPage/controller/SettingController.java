@@ -1,5 +1,6 @@
 package com.backend_dashboard.backend_dashboard.settingPage.controller;
 
+import com.backend_dashboard.backend_dashboard.common.domain.AppliedStatus;
 import com.backend_dashboard.backend_dashboard.common.domain.dto.ApiResponseDto;
 import com.backend_dashboard.backend_dashboard.settingPage.domain.dto.*;
 import com.backend_dashboard.backend_dashboard.redis.dto.UserCacheDto;
@@ -68,10 +69,11 @@ public class SettingController {
             @RequestHeader("X-User-Id") Long userId,
             @RequestParam(required = false) String sensorType,
             @RequestParam(required = false) String zoneId,
+            @RequestParam(required = false) List<AppliedStatus> appliedStatus,
             @PageableDefault(page = 0, size = 10) Pageable pageable
     ) {
         UserCacheDto userInfo = userRedisService.getUserInfo(employeeId);
-        Page<SensorThresholdRecommendationResponseDto> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, pageable);
+        Page<SensorThresholdRecommendationResponseDto> response = sensorSettingService.readSensorThresholdRecommendation(userInfo, sensorType, zoneId, appliedStatus, pageable);
         return ApiResponseDto.createOk(response, "AI 추천된 센서 임계치 목록 조회 성공");
     }
 
