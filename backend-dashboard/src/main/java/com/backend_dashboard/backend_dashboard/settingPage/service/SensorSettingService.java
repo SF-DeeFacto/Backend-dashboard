@@ -225,11 +225,11 @@ public class SensorSettingService {
             if(thresholdUpdateResponseDto == null) {
                 throw new CustomException(ErrorCode.INTERNAL_ERROR, "임계치 적용 과정에 오류가 발생했습니다.");
             }
-            target.setAppliedAt(LocalDateTime.now());
         }
 
         // 임계치 추천 상태 업데이트 (SensorThresholdRecommendation Table: appliedStatus, appliedAt)
         target.setAppliedStatus(requestDto.getAppliedStatus());
+        target.setAppliedAt(LocalDateTime.now());
         SensorThresholdRecommendation updatedEntity =  sensorThresholdRecommendationRepository.save(target);
 
         // 반환값 DTO화
