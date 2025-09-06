@@ -47,7 +47,7 @@ public class MainPageController {
                 .map(sensorList -> {
                     List<ZoneStatusDto> zoneStatuses = zoneStatusService.evaluateZoneStatuses(sensorList);
                     try {
-                        ApiResponseDto<List<ZoneStatusDto>> response = ApiResponseDto.createOk(zoneStatuses);
+                        ApiResponseDto<List<ZoneStatusDto>> response = ApiResponseDto.createOk(zoneStatuses, "MainPage: Red, Yellow, Green Logic Success");
                         return objectMapper.writeValueAsString(response);
                     } catch (JsonProcessingException e) {
                         return "";

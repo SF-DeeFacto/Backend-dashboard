@@ -3,16 +3,15 @@ package com.backend_dashboard.backend_dashboard.common.config;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
+
+import org.opensearch.client.RestClient;
+import org.opensearch.client.RestClientBuilder;
+import org.opensearch.client.json.jackson.JacksonJsonpMapper;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.transport.rest_client.RestClientTransport;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.net.ssl.SSLContext;
 
 @Configuration
 public class OpenSearchConfig {
@@ -20,34 +19,36 @@ public class OpenSearchConfig {
     @Value("${aws.opensearch.host}")
     private String host;
 
-//     🔥 AWS 사용 시 주석 처리 필요
-//    @Value("${aws.opensearch.username}")
-//    private String username;
-//
-//    // 🔥 AWS 사용 시 주석 처리 필요
-//    @Value("${aws.opensearch.password}")
-//    private String password;
+    @Value("${aws.opensearch.port}")
+    private int port;
+
+    @Value("${aws.opensearch.scheme}")
+    private String scheme;
+
+    @Value("${aws.opensearch.username}")
+    private String username;
+
+    @Value("${aws.opensearch.password}")
+    private String password;
 
     @Bean
-    public RestHighLevelClient restHighLevelClient() throws Exception {
+    public OpenSearchClient openSearchClient() {
+        final BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
+        credsProv.setCredentials(
+                AuthScope.ANY,
+                new UsernamePasswordCredentials(username, password)
+        );
 
+        RestClientBuilder builder = RestClient.builder(
+                        new org.apache.http.HttpHost(host, port, scheme))
+                .setHttpClientConfigCallback(httpClientBuilder ->
+                        httpClientBuilder.setDefaultCredentialsProvider(credsProv));
 
-        final var provider = new BasicCredentialsProvider();
-        // 🔥 AWS 사용 시 주석 처리 필요
-//        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+        RestClientTransport transport = new RestClientTransport(
+                builder.build(),
+                new JacksonJsonpMapper()
+        );
 
-        final SSLContext sslContext = SSLContexts.custom()
-                .loadTrustMaterial(null, (chain, authType) -> true)
-                .build();
-
-        RestClientBuilder builder = RestClient.builder(org.apache.http.HttpHost.create(host))
-                .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
-                        .setSSLContext(sslContext)
-                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                        // 🔥 AWS 사용 시 주석 처리 필요
-//                        .setDefaultCredentialsProvider(provider)
-                );
-
-        return new RestHighLevelClient(builder);
+        return new OpenSearchClient(transport);
     }
 }

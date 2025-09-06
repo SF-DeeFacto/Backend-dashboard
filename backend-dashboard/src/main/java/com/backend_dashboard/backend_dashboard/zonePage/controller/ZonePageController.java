@@ -19,19 +19,19 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/stream")
+@RequestMapping("/home")
 public class ZonePageController {
     private final ZonePageService zonePageService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @GetMapping(value = "/home/zone", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/zone", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ApiResponseDto<List<GroupSensorWithStatusDto>>> getZoneSensorData(
             @RequestParam String zoneId,
             @RequestHeader(value = "X-Employee-Id") String employeeId
     ) {
         log.info("요청에 포함된 EmployeeId: {}", employeeId);
 
-        final Instant[] lastFetchTime = {Instant.now(Clock.systemUTC()).minus(Duration.ofSeconds(10))};
+        final Instant[] lastFetchTime = {Instant.now(Clock.systemUTC()).minus(Duration.ofSeconds(5))};
 
         return zonePageService.checkScopeAndZoneId(employeeId, zoneId)
                 .flatMapMany(isAuthenticated -> {
@@ -49,7 +49,7 @@ public class ZonePageController {
                                                 log.error("스트림 처리 중 오류 발생", e);
                                                 return Mono.just(List.of());
                                             })
-                                            .map(ApiResponseDto::createOk);
+                                            .map(data -> ApiResponseDto.createOk(data, "Zone Page: Red, Yellow, Green Logic Success"));
                                 });
                     } else {
                         return Flux.error(new CustomException(ErrorCode.UNAUTHORIZED));

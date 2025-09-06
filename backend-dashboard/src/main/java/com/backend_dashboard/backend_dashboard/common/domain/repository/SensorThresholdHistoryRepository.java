@@ -4,4 +4,6 @@ import com.backend_dashboard.backend_dashboard.common.domain.entity.SensorThresh
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SensorThresholdHistoryRepository extends JpaRepository<SensorThresholdHistory, Long> {
+    SensorThresholdHistory findTopByZoneIdAndSensorTypeOrderByUpdatedAtDesc(String zoneId, String sensorType);
+
 }

@@ -37,6 +37,7 @@ public class ZonePageService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Mono<List<GroupSensorWithStatusDto>> getSensorDataWithStatus(Instant fromTime, String zoneId) {
+        // 임계치 불러오기
         Mono<Map<String, SensorThreshold>> thresholdMapMono = getThresholdMap();
 
         return openSearchService.getLatestSensorData(fromTime, zoneId)
@@ -66,6 +67,7 @@ public class ZonePageService {
     // 임계치 데이터 캐싱 적용
     @Cacheable("sensorThresholds")
     public Mono<Map<String, SensorThreshold>> getThresholdMap() {
+        log.info("zone Thresholds 호출 시작");
         return Mono.fromCallable(() -> thresholdRepository.findAll().stream()
                         .collect(Collectors.toMap(
                                 SensorThreshold::getSensorType,

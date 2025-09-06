@@ -9,6 +9,7 @@ import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorDataDto;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.GroupSensorWithStatusDto;
 import com.backend_dashboard.backend_dashboard.zonePage.dto.SensorWithStatusDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SensorService {
     private final SensorThresholdRepository thresholdRepository;
 
@@ -67,17 +69,17 @@ public class SensorService {
 
         if ("particle".equals(type)) {
             // particle의 val은 {"0.1": 950, "0.3": 100, "0.5": 30} 같은 구조
-            if (checkAlertThreshold("particle_0_1", values.get("0.1"), thresholdMap)) {
+            if (checkAlertThreshold("particle_0_1um", values.get("0.1"), thresholdMap)) {
                 hasRed = true;
-            } else if (checkAlertThreshold("particle_0_3", values.get("0.3"), thresholdMap)) {
+            } else if (checkAlertThreshold("particle_0_3um", values.get("0.3"), thresholdMap)) {
                 hasRed = true;
-            } else if (checkAlertThreshold("particle_0_5", values.get("0.5"), thresholdMap)) {
+            } else if (checkAlertThreshold("particle_0_5um", values.get("0.5"), thresholdMap)) {
                 hasRed = true;
-            } else if (checkWarningThreshold("particle_0_1", values.get("0.1"), thresholdMap)) {
+            } else if (checkWarningThreshold("particle_0_1um", values.get("0.1"), thresholdMap)) {
                 hasYellow = true;
-            } else if (checkWarningThreshold("particle_0_3", values.get("0.3"), thresholdMap)) {
+            } else if (checkWarningThreshold("particle_0_3um", values.get("0.3"), thresholdMap)) {
                 hasYellow = true;
-            } else if (checkWarningThreshold("particle_0_5", values.get("0.5"), thresholdMap)) {
+            } else if (checkWarningThreshold("particle_0_5um", values.get("0.5"), thresholdMap)) {
                 hasYellow = true;
             }
 
@@ -99,9 +101,10 @@ public class SensorService {
 
     // alert level 가져오기
     private boolean checkAlertThreshold(String type, Double val, Map<String, SensorThreshold> thresholdMap) {
+        log.info(type, val, thresholdMap);
         SensorThreshold threshold = thresholdMap.get(type);
         if (threshold == null) {
-            System.out.println("임계치가 없습니다!!!!!!!!!!!!!!!!!!!!!!!!!");
+            System.out.println(type+"임계치가 없습니다!!!!!!!!!!!!!!!!!!!!!!!!!");
             return false;
         }
 
