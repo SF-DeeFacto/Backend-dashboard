@@ -27,11 +27,10 @@ spring:
         use_sql_comments: true
         jdbc:
           time_zone: UTC  # 타임존 설정 추가
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-#    password: ${REDIS_PASSWORD:StrongPassword22!}
-
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     listener:
